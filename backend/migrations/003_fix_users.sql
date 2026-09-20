@@ -1,0 +1,5 @@
+ALTER TABLE users
+DROP CONSTRAINT users_name_key;
+
+ALTER TABLE users
+ADD COLUMN email TEXT NOT NULL UNIQUE;
