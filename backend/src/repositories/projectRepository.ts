@@ -1,5 +1,16 @@
+import { describe } from "node:test";
 import pool from "../db/pool.js";
 
+
+export interface Project {
+  id: string;
+  workspace_id: string;
+  created_by: string;
+  name: string;
+  description: string | null;
+  created_at : Date;
+  updated_at: Date;
+}
 export interface CreateProjectData {
   workspaceId: string;
   createdBy: string;
@@ -36,3 +47,24 @@ export const createProject = async ({
 
   return result.rows[0];
 };
+
+export const getProjectsByWorkspace = async (workspaceId: string): Promise<Project[]> => {
+  const result = await pool.query(
+    `
+    SELECT 
+    identity,
+    workspace_id,
+    created_by,
+    name,
+    description,
+    created_at,
+    updated_at
+    FROM projects
+    WHERE workspace_id = $1
+    ORDER BY created_at ASC
+    `,
+    [workspaceId]
+  );
+
+return result.rows;
+}

@@ -2,6 +2,8 @@ import {
   createProject as createProjectRepository,
 } from "../repositories/projectRepository.js";
 import { AppError } from "../errors/AppError.js";
+import { getProjectsByWorkspace as getProjectsByWorkspaceRepository } from "../repositories/projectRepository.js"; 
+
 
 interface CreateProjectInput {
   workspaceId: string;
@@ -55,4 +57,7 @@ export const createProject = async ({
     name: trimmedName,
     ...(description !== undefined ? { description } : {}),
   });
+};
+export const getProjectsByWorkspace = async (workspaceId: string):Promise<unknown> => {
+  return getProjectsByWorkspace(workspaceId);
 };
