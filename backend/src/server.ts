@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import workspaceRoutes from "./routes/workspaceRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
@@ -23,6 +24,8 @@ app.get("/api/health", (req, res) => {
         message:"SyncSpace API is running",
     });
 });
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`SyncSpace API running on port ${PORT}`);
