@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import { createProject } from "../services/projectService.js";
+import { createProject, getProjectsByWorkspace } from "../services/projectService.js";
+
 
 export const createProjectController = async (
   req: Request,
@@ -31,6 +32,31 @@ export const createProjectController = async (
 
     return res.status(201).json({
       project,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getProjectsByWorkspaceController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+
+  
+  try {
+    const { workspaceId } = req.params;
+
+    if (!workspaceId || Array.isArray(workspaceId)) {
+      return res.status(400).json({
+        message: "Invalid workspace ID",
+      });
+    }
+    const projects = await getProjectsByWorkspace(workspaceId);
+
+    return res.status(200).json({
+      projects,
     });
   } catch (error) {
     next(error);
