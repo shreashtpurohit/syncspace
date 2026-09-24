@@ -59,5 +59,5 @@ export const createProject = async ({
   });
 };
 export const getProjectsByWorkspace = async (workspaceId: string):Promise<unknown> => {
-  return getProjectsByWorkspace(workspaceId);
+  return getProjectsByWorkspaceRepository(workspaceId);
 };
