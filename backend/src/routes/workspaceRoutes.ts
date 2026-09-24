@@ -1,9 +1,18 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
 import { requireWorkspaceRole } from "../middleware/workspaceAuth.js";
-import { createProjectController } from "../controllers/projectController.js";
+import { createProjectController, getProjectsByWorkspaceController, } from "../controllers/projectController.js";
 
 const router = Router();
+
+
+
+router.get(
+  "/workspaces/:workspaceId/projects",
+  authenticate,
+  requireWorkspaceRole("member", "admin", "owner"),
+  getProjectsByWorkspaceController
+);
 
 router.get(
   "/workspaces/:workspaceId/test",
@@ -17,7 +26,9 @@ router.get(
     });
   }
 );
-console.log("Registering project POST route");
+
+
+
 router.post(
   "/workspaces/:workspaceId/projects",
   authenticate,
