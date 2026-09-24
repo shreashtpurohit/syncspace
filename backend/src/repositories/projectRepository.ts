@@ -49,10 +49,11 @@ export const createProject = async ({
 };
 
 export const getProjectsByWorkspace = async (workspaceId: string): Promise<Project[]> => {
+  
   const result = await pool.query(
     `
     SELECT 
-    identity,
+    id,
     workspace_id,
     created_by,
     name,
