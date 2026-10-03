@@ -69,3 +69,23 @@ export const getProjectsByWorkspace = async (workspaceId: string): Promise<Proje
 
 return result.rows;
 }
+
+export const getProjectById = async (projectId: string) => {
+  const result = await pool.query<Project>(
+    `
+    SELECT
+    id,
+    workspace_id,
+    created_by,
+    name,
+    description,
+    created_at,
+    updated_at
+    FROM projects
+    WHERE id = $1
+    `,
+    [projectId]
+  );
+
+  return result.rows[0] ?? null;
+};

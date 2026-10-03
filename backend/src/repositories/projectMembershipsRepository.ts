@@ -3,7 +3,7 @@ import pool from "../db/pool.js";
 export interface CreateProjectMembershipsData {
     projectId : string;
     membershipId : String;
-    role : "viewer | editor";
+    role : "viewer" | "editor";
 }
 
 export const createProjectMembership = async ({
