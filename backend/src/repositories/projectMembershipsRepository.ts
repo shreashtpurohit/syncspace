@@ -33,3 +33,44 @@ export const createProjectMembership = async ({
     return result.rows[0];
 
 };
+
+export interface ProjectMember {
+    id: string;
+    projectId: string;
+    membership_id: string;
+    role: "viewer" | "editor";
+    user_id: string;
+    user_name: string;
+    user_email: string;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export const getProjectMembers = async (
+    projectId: string
+): Promise<ProjectMember[]> => {
+    const result = await pool.query<ProjectMember>(
+        `
+        SELECT
+        pm.id,
+        pm.project_id,
+        pm.membership_id,
+        pm.role
+        m.user_id,
+        u.name AS user_email,
+        pm.created_at,
+        pm.updated_at,
+        FROM project_memberships pm
+        JOIN memberships m
+        ON m.id = pm.membership_id
+        JOIN users u
+        ON u.id = m.user_id
+        WHERE pm.project_id = $1
+        ORDER BY pm.created_at ASC
+        `,
+        [projectId]
+        
+    );
+
+    return result.rows;
+}
