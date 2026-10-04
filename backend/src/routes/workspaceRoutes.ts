@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
 import { requireWorkspaceRole } from "../middleware/workspaceAuth.js";
 import { createProjectController, getProjectsByWorkspaceController, } from "../controllers/projectController.js";
-
+import { createProjectMembershipController } from "../controllers/projectMembershipController.js";
 const router = Router();
 
 
@@ -27,13 +27,18 @@ router.get(
   }
 );
 
-
-
 router.post(
   "/workspaces/:workspaceId/projects",
   authenticate,
   requireWorkspaceRole("member", "admin", "owner"),
   createProjectController
 );
+
+router.post(
+  "/workspaces/:workspaceId/projects/:projectId/members",
+  authenticate,
+  requireWorkspaceRole("admin", "owner"),
+  createProjectMembershipController
+)
 
 export default router;

@@ -29,6 +29,22 @@ export const createProjectMembership = async (
     );
   }
 
+  try {
+    return await createProjectMembershipRepository({
+      projectId,
+      membershipId,
+      role,
+    });
+  } catch (error: any) {
+    if (error.code === "23505") {
+      throw new AppError(
+        "User is already a member of this project", 409
+      );
+    }
+
+    throw error;
+  }
+
   return createProjectMembershipRepository({
     projectId,
     membershipId,
