@@ -3,7 +3,7 @@ import { getProjectById } from "../repositories/projectRepository.js";
 import { getMembershipById } from "../repositories/membershipRepository.js";
 import {
   createProjectMembership as createProjectMembershipRepository,
-getProjectMembers as getProjectMembersRepository, updateProjectMembershipRole as updateProjectMembershipRoleRepository,} from "../repositories/projectMembershipsRepository.js";
+getProjectMembers as getProjectMembersRepository, updateProjectMembershipRole as updateProjectMembershipRoleRepository, deleteProjectMembership as deleteProjectMembershipRepository,} from "../repositories/projectMembershipsRepository.js";
 
 export const createProjectMembership = async (
   projectId: string,
@@ -73,4 +73,17 @@ export const updateProjectMembershipRole = async (
     }
 
     return updatedMembership;
+};
+
+export const deleteProjectMembership = async (
+    projectMembershipId: string
+) => {
+    const deletedMembership =
+        await deleteProjectMembershipRepository(projectMembershipId);
+
+    if (!deletedMembership) {
+        throw new AppError("Project membership not found", 404);
+    }
+
+    return deletedMembership;
 };

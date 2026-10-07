@@ -98,3 +98,22 @@ export const updateProjectMembershipRole = async (
 
     return result.rows[0] ?? null;
 };
+
+export const deleteProjectMembership = async (
+    projectMembershipId: string
+) => {
+    const result = await pool.query(
+        `
+        DELETE FROM project_memberships
+        WHERE id = $1
+        RETURNING
+            id,
+            project_id,
+            membership_id,
+            role
+        `,
+        [projectMembershipId]
+    );
+
+    return result.rows[0] ?? null;
+};

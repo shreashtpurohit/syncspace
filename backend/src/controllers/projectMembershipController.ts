@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { createProjectMembership, getProjectMembers, updateProjectMembershipRole, } from "../services/projectMembershipService.js";
+import { createProjectMembership, getProjectMembers, updateProjectMembershipRole, deleteProjectMembership, } from "../services/projectMembershipService.js";
 
 export const createProjectMembershipController = async (
     req: Request,
@@ -98,6 +98,34 @@ export const updateProjectMembershipRoleController = async (
 
         return res.status(200).json({
             membership: updatedMembership,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteProjectMembershipController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const { projectMembershipId } = req.params;
+
+        if (
+            !projectMembershipId ||
+            Array.isArray(projectMembershipId)
+        ) {
+            return res.status(400).json({
+                message: "Invalid project membership ID",
+            });
+        }
+
+        const deletedMembership =
+            await deleteProjectMembership(projectMembershipId);
+
+        return res.status(200).json({
+            membership: deletedMembership,
         });
     } catch (error) {
         next(error);
