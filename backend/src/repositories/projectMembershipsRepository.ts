@@ -55,11 +55,11 @@ export const getProjectMembers = async (
         pm.id,
         pm.project_id,
         pm.membership_id,
-        pm.role
+        pm.role,
         m.user_id,
-        u.name AS user_email,
+        u.name AS user_name,
         pm.created_at,
-        pm.updated_at,
+        pm.updated_at
         FROM project_memberships pm
         JOIN memberships m
         ON m.id = pm.membership_id
