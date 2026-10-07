@@ -3,7 +3,7 @@ import { getProjectById } from "../repositories/projectRepository.js";
 import { getMembershipById } from "../repositories/membershipRepository.js";
 import {
   createProjectMembership as createProjectMembershipRepository,
-getProjectMembers as getProjectMembersRepository,} from "../repositories/projectMembershipsRepository.js";
+getProjectMembers as getProjectMembersRepository, updateProjectMembershipRole as updateProjectMembershipRoleRepository,} from "../repositories/projectMembershipsRepository.js";
 
 export const createProjectMembership = async (
   projectId: string,
@@ -56,4 +56,21 @@ export const getProjectMembers = async (
   projectId: string
 ) => {
   return getProjectMembersRepository(projectId);
+};
+
+export const updateProjectMembershipRole = async (
+    projectMembershipId: string,
+    role: "viewer" | "editor"
+) => {
+    const updatedMembership =
+        await updateProjectMembershipRoleRepository(
+            projectMembershipId,
+            role
+        );
+
+    if (!updatedMembership) {
+        throw new AppError("Project membership not found", 404);
+    }
+
+    return updatedMembership;
 };

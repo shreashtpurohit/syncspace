@@ -74,3 +74,27 @@ export const getProjectMembers = async (
 
     return result.rows;
 }
+
+export const updateProjectMembershipRole = async (
+    projectMembershipId: string,
+    role: "viewer" | "editor"
+) => {
+    const result = await pool.query(
+        `
+        UPDATE project_memberships
+        SET role = $1,
+            updated_at = NOW()
+        WHERE id = $2
+        RETURNING
+            id,
+            project_id,
+            membership_id,
+            role,
+            created_at,
+            updated_at
+        `,
+        [role, projectMembershipId]
+    );
+
+    return result.rows[0] ?? null;
+};
