@@ -3,7 +3,7 @@ import { getProjectById } from "../repositories/projectRepository.js";
 import { getMembershipById } from "../repositories/membershipRepository.js";
 import {
   createProjectMembership as createProjectMembershipRepository,
-} from "../repositories/projectMembershipsRepository.js";
+getProjectMembers as getProjectMembersRepository,} from "../repositories/projectMembershipsRepository.js";
 
 export const createProjectMembership = async (
   projectId: string,
@@ -50,4 +50,10 @@ export const createProjectMembership = async (
     membershipId,
     role,
   });
+};
+
+export const getProjectMembers = async (
+  projectId: string
+) => {
+  return getProjectMembersRepository(projectId);
 };
