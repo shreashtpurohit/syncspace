@@ -1,6 +1,6 @@
 # SyncSpace
 
-A collaborative task-management platform built with the PERN stack.
+SyncSpace is a collaborative task-management platform for teams. The intended product lets users work inside workspaces, organize work into projects, control who can access each project, and later manage tasks, comments, and activity in real time.
 
 ## Tech Stack
 
