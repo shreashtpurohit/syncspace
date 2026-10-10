@@ -22,32 +22,41 @@ export const requireWorkspaceRole = (
       }
 
       const result = await pool.query(
-        `
-        SELECT role
-        FROM memberships
-        WHERE user_id = $1
-          AND workspace_id = $2
-        `,
-        [userId, workspaceId]
-      );
+  `
+  SELECT id, workspace_id, role
+  FROM memberships
+  WHERE user_id = $1
+    AND workspace_id = $2
+  `,
+  [userId, workspaceId]
+);
 
-      if (result.rows.length === 0) {
-        return res.status(403).json({
-          message: "You do not have access to this workspace",
-        });
-      }
+if (result.rows.length === 0) {
+  return res.status(403).json({
+    message: "You do not have access to this workspace",
+  });
+}
 
-      const role = result.rows[0].role as WorkspaceRole;
+const membership = result.rows[0];
 
-      if (!allowedRoles.includes(role)) {
-        return res.status(403).json({
-          message: "You do not have permission to perform this action",
-        });
-      }
+const role = membership.role as WorkspaceRole;
+
+if (!allowedRoles.includes(role)) {
+  return res.status(403).json({
+    message: "You do not have permission to perform this action",
+  });
+}
+
+req.workspaceMembership = {
+  id: membership.id,
+  workspaceId: membership.workspace_id,
+  role: membership.role,
+};
 
       req.workspaceMembership = {
-        workspaceId,
-        role,
+        id: membership.id,
+        workspaceId: membership.workspace_id,
+        role: membership.role,
       };
 
       next();
