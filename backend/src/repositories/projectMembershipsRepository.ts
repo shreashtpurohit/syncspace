@@ -117,3 +117,26 @@ export const deleteProjectMembership = async (
 
     return result.rows[0] ?? null;
 };
+
+export const getProjectMembershipByProjectAndMembership = async (
+    projectId: string,
+    membershipId: string
+) => {
+    const result = await pool.query(
+        `
+        SELECT
+            id,
+            project_id,
+            membership_id,
+            role,
+            created_at,
+            updated_at
+        FROM project_memberships
+        WHERE project_id = $1
+          AND membership_id = $2
+        `,
+        [projectId, membershipId]
+    );
+
+    return result.rows[0] ?? null;
+};
