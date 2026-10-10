@@ -1,3 +1,4 @@
+
 import type { Request, Response, NextFunction } from "express";
 
 export const authenticate = (
@@ -5,9 +6,11 @@ export const authenticate = (
   _res: Response,
   next: NextFunction
 ) => {
-  // Temporary user for development/testing
+  // Temporary development identity; replace with real authentication later.
   req.user = {
-    id: "83e208cf-f5cb-44ea-a750-6f90223d10fb",
+    id:
+      process.env.DEV_USER_ID ??
+      "83e208cf-f5cb-44ea-a750-6f90223d10fb",
   };
 
   next();
