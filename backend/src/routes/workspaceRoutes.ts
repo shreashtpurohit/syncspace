@@ -4,6 +4,7 @@ import { requireWorkspaceRole } from "../middleware/workspaceAuth.js";
 import { createProjectController, getProjectsByWorkspaceController, } from "../controllers/projectController.js";
 import { createProjectMembershipController, getProjectMembersController, updateProjectMembershipRoleController, deleteProjectMembershipController, } from "../controllers/projectMembershipController.js";
 import { requireProjectRole } from "../middleware/projectAuth.js";
+import { requireProjectContext } from "../middleware/projectContext.js";
 
 const router = Router();
 
@@ -40,6 +41,7 @@ router.post(
   "/workspaces/:workspaceId/projects/:projectId/members",
   authenticate,
   requireWorkspaceRole("admin", "owner"),
+  requireProjectContext,
   createProjectMembershipController
 )
 
@@ -55,6 +57,7 @@ router.patch(
     "/workspaces/:workspaceId/projects/:projectId/members/:projectMembershipId",
     authenticate,
     requireWorkspaceRole("admin", "owner"),
+     requireProjectContext,
     updateProjectMembershipRoleController
 );
 
@@ -62,6 +65,7 @@ router.delete(
     "/workspaces/:workspaceId/projects/:projectId/members/:projectMembershipId",
     authenticate,
     requireWorkspaceRole("admin", "owner"),
+    requireProjectContext,
     deleteProjectMembershipController
 );
 
