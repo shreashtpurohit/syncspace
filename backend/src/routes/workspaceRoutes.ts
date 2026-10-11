@@ -17,23 +17,12 @@ router.get(
   getProjectsByWorkspaceController
 );
 
-router.get(
-  "/workspaces/:workspaceId/test",
-  authenticate,
-  requireWorkspaceRole("member", "admin", "owner"),
-  (req, res) => {
-    res.json({
-      message: "Workspace access granted",
-      userId: req.user.id,
-      workspace: req.workspaceMembership,
-    });
-  }
-);
+
 
 router.post(
   "/workspaces/:workspaceId/projects",
   authenticate,
-  requireWorkspaceRole("member", "admin", "owner"),
+  requireWorkspaceRole("admin", "owner"),
   createProjectController
 );
 
