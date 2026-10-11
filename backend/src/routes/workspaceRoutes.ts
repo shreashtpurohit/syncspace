@@ -5,10 +5,15 @@ import { createProjectController, getProjectsByWorkspaceController, } from "../c
 import { createProjectMembershipController, getProjectMembersController, updateProjectMembershipRoleController, deleteProjectMembershipController, } from "../controllers/projectMembershipController.js";
 import { requireProjectRole } from "../middleware/projectAuth.js";
 import { requireProjectContext } from "../middleware/projectContext.js";
+import { getUserWorkspacesController } from "../controllers/workspaceController.js";
 
 const router = Router();
 
-
+router.get(
+  "/workspaces",
+  authenticate,
+  getUserWorkspacesController
+);
 
 router.get(
   "/workspaces/:workspaceId/projects",
@@ -16,8 +21,6 @@ router.get(
   requireWorkspaceRole("member", "admin", "owner"),
   getProjectsByWorkspaceController
 );
-
-
 
 router.post(
   "/workspaces/:workspaceId/projects",
@@ -46,7 +49,7 @@ router.patch(
     "/workspaces/:workspaceId/projects/:projectId/members/:projectMembershipId",
     authenticate,
     requireWorkspaceRole("admin", "owner"),
-     requireProjectContext,
+    requireProjectContext,
     updateProjectMembershipRoleController
 );
 
