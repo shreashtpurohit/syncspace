@@ -3,6 +3,8 @@ import { authenticate } from "../middleware/auth.js";
 import { requireWorkspaceRole } from "../middleware/workspaceAuth.js";
 import { createProjectController, getProjectsByWorkspaceController, } from "../controllers/projectController.js";
 import { createProjectMembershipController, getProjectMembersController, updateProjectMembershipRoleController, deleteProjectMembershipController, } from "../controllers/projectMembershipController.js";
+import { requireProjectRole } from "../middleware/projectAuth.js";
+
 const router = Router();
 
 
@@ -45,6 +47,7 @@ router.get(
   "/workspaces/:workspaceId/projects/:projectId/members",
   authenticate,
   requireWorkspaceRole("member", "admin", "owner"),
+  requireProjectRole("viewer", "editor"),
   getProjectMembersController
 );
 
