@@ -30,3 +30,54 @@ export const getWorkspacesByUserId = async (
 
   return result.rows;
 };
+
+export const createWorkspaceForUser = async (
+  userId: string,
+  name: string
+): Promise<Workspace> => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const workspaceResult = await client.query<{
+      id: string;
+      name: string;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `
+      INSERT INTO workspaces (name)
+      VALUES ($1)
+      RETURNING id, name, created_at, updated_at
+      `,
+      [name]
+    );
+
+    const workspace = workspaceResult.rows[0];
+    if (!workspace) {
+  throw new Error("Failed to create workspace");
+}
+
+    await client.query(
+      `
+      INSERT INTO memberships (user_id, workspace_id, role)
+      VALUES ($1, $2, 'owner')
+      `,
+      [userId, workspace.id]
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      ...workspace,
+      role: "owner",
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
