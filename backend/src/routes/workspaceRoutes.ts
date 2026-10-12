@@ -6,7 +6,7 @@ import { createProjectMembershipController, getProjectMembersController, updateP
 import { requireProjectRole } from "../middleware/projectAuth.js";
 import { requireProjectContext } from "../middleware/projectContext.js";
 import { getUserWorkspacesController } from "../controllers/workspaceController.js";
-import { createWorkspaceController, renameWorkspaceController } from "../controllers/workspaceController.js";
+import { createWorkspaceController, renameWorkspaceController, deleteWorkspaceController } from "../controllers/workspaceController.js";
 
 const router = Router();
 
@@ -75,4 +75,10 @@ router.delete(
     deleteProjectMembershipController
 );
 
+router.delete(
+  "/workspaces/:workspaceId",
+  authenticate,
+  requireWorkspaceRole("owner"),
+  deleteWorkspaceController
+);
 export default router;
