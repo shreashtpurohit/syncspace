@@ -6,6 +6,7 @@ import { createProjectMembershipController, getProjectMembersController, updateP
 import { requireProjectRole } from "../middleware/projectAuth.js";
 import { requireProjectContext } from "../middleware/projectContext.js";
 import { getUserWorkspacesController } from "../controllers/workspaceController.js";
+import { createWorkspaceController } from "../controllers/workspaceController.js";
 
 const router = Router();
 
@@ -13,6 +14,12 @@ router.get(
   "/workspaces",
   authenticate,
   getUserWorkspacesController
+);
+
+router.post(
+  "/workspaces",
+  authenticate,
+  createWorkspaceController
 );
 
 router.get(
