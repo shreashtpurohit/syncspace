@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { getUserWorkspaces, createWorkspace, renameWorkspace } from "../services/workspaceService.js";
+import { getUserWorkspaces, createWorkspace, renameWorkspace, deleteWorkspace } from "../services/workspaceService.js";
 
 export const getUserWorkspacesController = async (
   req: Request,
@@ -63,6 +63,30 @@ export const renameWorkspaceController = async (
     const workspace = await renameWorkspace(workspaceId, name);
 
     res.status(200).json({ workspace });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteWorkspaceController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { workspaceId } = req.params;
+
+    if (!workspaceId || Array.isArray(workspaceId)) {
+      return res.status(400).json({
+        message: "Invalid workspace ID",
+      });
+    }
+
+    await deleteWorkspace(workspaceId);
+
+    res.status(200).json({
+      message: "Workspace deleted successfully",
+    });
   } catch (error) {
     next(error);
   }
