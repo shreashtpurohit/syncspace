@@ -104,3 +104,18 @@ export const updateWorkspaceName = async (
 
   return result.rows[0] ?? null;
 };
+
+export const deleteWorkspaceById = async (
+  workspaceId: string
+): Promise<string | null> => {
+  const result = await pool.query<{ id: string }>(
+    `
+    DELETE FROM workspaces
+    WHERE id = $1
+    RETURNING id
+    `,
+    [workspaceId]
+  );
+
+  return result.rows[0]?.id ?? null;
+};
