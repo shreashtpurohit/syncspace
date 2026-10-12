@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { getUserWorkspaces, createWorkspace } from "../services/workspaceService.js";
+import { getUserWorkspaces, createWorkspace, renameWorkspace } from "../services/workspaceService.js";
 
 export const getUserWorkspacesController = async (
   req: Request,
@@ -34,6 +34,35 @@ export const createWorkspaceController = async (
     const workspace = await createWorkspace(req.user.id, name);
 
     res.status(201).json({ workspace });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const renameWorkspaceController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { workspaceId } = req.params;
+    const { name } = req.body;
+
+    if (!workspaceId || Array.isArray(workspaceId)) {
+      return res.status(400).json({
+        message: "Invalid workspace ID",
+      });
+    }
+
+    if (typeof name !== "string") {
+      return res.status(400).json({
+        message: "Workspace name is required",
+      });
+    }
+
+    const workspace = await renameWorkspace(workspaceId, name);
+
+    res.status(200).json({ workspace });
   } catch (error) {
     next(error);
   }
