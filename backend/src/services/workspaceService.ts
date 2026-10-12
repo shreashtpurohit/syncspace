@@ -3,6 +3,7 @@ import type { Workspace } from "../repositories/workspaceRepository.js";
 import { createWorkspaceForUser } from "../repositories/workspaceRepository.js";
 import { AppError } from "../errors/AppError.js";
 import { updateWorkspaceName } from "../repositories/workspaceRepository.js";
+import { deleteWorkspaceById } from "../repositories/workspaceRepository.js";
 
 export const getUserWorkspaces = async (
   userId: string
@@ -57,4 +58,14 @@ export const renameWorkspace = async (
   }
 
   return workspace;
+};
+
+export const deleteWorkspace = async (
+  workspaceId: string
+): Promise<void> => {
+  const deletedWorkspaceId = await deleteWorkspaceById(workspaceId);
+
+  if (!deletedWorkspaceId) {
+    throw new AppError("Workspace not found", 404);
+  }
 };
