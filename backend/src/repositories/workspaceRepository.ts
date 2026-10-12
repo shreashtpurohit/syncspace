@@ -8,6 +8,13 @@ export interface Workspace {
   updated_at: Date;
 }
 
+export interface WorkspaceDetails {
+  id: string;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export const getWorkspacesByUserId = async (
   userId: string
 ): Promise<Workspace[]> => {
@@ -81,3 +88,19 @@ export const createWorkspaceForUser = async (
   }
 };
 
+export const updateWorkspaceName = async (
+  workspaceId: string,
+  name: string
+): Promise<WorkspaceDetails | null> => {
+  const result = await pool.query<WorkspaceDetails>(
+    `
+    UPDATE workspaces
+    SET name = $2, updated_at = NOW()
+    WHERE id = $1
+    RETURNING id, name, created_at, updated_at
+    `,
+    [workspaceId, name]
+  );
+
+  return result.rows[0] ?? null;
+};
