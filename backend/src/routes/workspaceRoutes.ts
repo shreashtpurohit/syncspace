@@ -5,8 +5,16 @@ import { createProjectController, getProjectsByWorkspaceController, } from "../c
 import { createProjectMembershipController, getProjectMembersController, updateProjectMembershipRoleController, deleteProjectMembershipController, } from "../controllers/projectMembershipController.js";
 import { requireProjectRole } from "../middleware/projectAuth.js";
 import { requireProjectContext } from "../middleware/projectContext.js";
-import { getUserWorkspacesController } from "../controllers/workspaceController.js";
-import { createWorkspaceController, renameWorkspaceController, deleteWorkspaceController } from "../controllers/workspaceController.js";
+import {
+  getUserWorkspacesController,
+  createWorkspaceController,
+  renameWorkspaceController,
+  deleteWorkspaceController,
+  getWorkspaceMembersController,
+  addWorkspaceMemberController,
+  updateWorkspaceMemberRoleController,
+  removeWorkspaceMemberController,
+} from "../controllers/workspaceController.js";
 
 const router = Router();
 
@@ -80,5 +88,36 @@ router.delete(
   authenticate,
   requireWorkspaceRole("owner"),
   deleteWorkspaceController
+);
+// List workspace members
+router.get(
+  "/workspaces/:workspaceId/members",
+  authenticate,
+  requireWorkspaceRole("member", "admin", "owner"),
+  getWorkspaceMembersController
+);
+
+// Add workspace member
+router.post(
+  "/workspaces/:workspaceId/members",
+  authenticate,
+  requireWorkspaceRole("admin", "owner"),
+  addWorkspaceMemberController
+);
+
+// Update workspace member role
+router.patch(
+  "/workspaces/:workspaceId/members/:membershipId",
+  authenticate,
+  requireWorkspaceRole("admin", "owner"),
+  updateWorkspaceMemberRoleController
+);
+
+// Remove workspace member
+router.delete(
+  "/workspaces/:workspaceId/members/:membershipId",
+  authenticate,
+  requireWorkspaceRole("admin", "owner"),
+  removeWorkspaceMemberController
 );
 export default router;
