@@ -2,12 +2,14 @@ import "dotenv/config";
 import express from "express";
 import workspaceRoutes from "./routes/workspaceRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-
+import authRoutes from "./routes/authRoutes.js";
 const app = express();
 
 const PORT = 5000;
 
 app.use(express.json());
+
+app.use(authRoutes);
 
 app.post("/debug", (req, res) => {
   res.json({
