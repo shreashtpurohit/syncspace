@@ -1,17 +1,39 @@
 
 import type { Request, Response, NextFunction } from "express";
+import { verifyAccessToken } from "../utils/jwt.js";
+import { AppError } from "../errors/AppError.js";
 
 export const authenticate = (
   req: Request,
   _res: Response,
   next: NextFunction
-) => {
-  // Temporary development identity; replace with real authentication later.
-  req.user = {
-    id:
-      process.env.DEV_USER_ID ??
-      "83e208cf-f5cb-44ea-a750-6f90223d10fb",
-  };
+): void => {
+  try {
+    const authorization = req.headers.authorization;
 
-  next();
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const token = authorization.slice(7).trim();
+
+    if (!token) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const payload = verifyAccessToken(token);
+
+    req.user = {
+      id: payload.sub,
+    };
+
+    next();
+  } catch (error) {
+    if (error instanceof AppError) {
+      next(error);
+      return;
+    }
+
+    next(new AppError("Invalid or expired token", 401));
+  }
 };
