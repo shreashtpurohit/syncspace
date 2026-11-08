@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 
 function HomeRedirect() {
   const { isAuthenticated } = useAuth()
@@ -13,16 +15,18 @@ function HomeRedirect() {
   )
 }
 
-function LoginPlaceholder() {
-  return <h1>SyncSpace — Login</h1>
-}
-
-function RegisterPlaceholder() {
-  return <h1>SyncSpace — Register</h1>
-}
-
 function DashboardPlaceholder() {
-  return <h1>SyncSpace — Dashboard</h1>
+  return <h1>SyncSpace Dashboard</h1>
+}
+
+function GuestRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth()
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return children
 }
 
 export default function App() {
@@ -30,8 +34,23 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
 
-      <Route path="/login" element={<LoginPlaceholder />} />
-      <Route path="/register" element={<RegisterPlaceholder />} />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <LoginPage />
+          </GuestRoute>
+        }
+      />
+
+      <Route
+        path="/register"
+        element={
+          <GuestRoute>
+            <RegisterPage />
+          </GuestRoute>
+        }
+      />
 
       <Route element={<ProtectedRoute />}>
         <Route
