@@ -11,12 +11,12 @@ app.use(express.json());
 
 app.use(authRoutes);
 
-app.post("/debug", (req, res) => {
-  res.json({
-    message: "POST works",
-    body: req.body,
-  });
-});
+//app.post("/debug", (req, res) => {
+//  res.json({
+//    message: "POST works",
+//    body: req.body,
+//  });
+//});
 
 app.use(workspaceRoutes);
 
