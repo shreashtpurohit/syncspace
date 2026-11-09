@@ -1,6 +1,5 @@
-
 import type { ReactNode } from 'react'
-
+import './auth.css'
 interface AuthLayoutProps {
   eyebrow: string
   title: string
