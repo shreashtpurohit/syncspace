@@ -1,6 +1,8 @@
+
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AuthLayout from '../components/auth/AuthLayout'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -36,49 +38,58 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
-      <section>
-        <h1>Welcome back</h1>
-        <p>Sign in to continue to SyncSpace.</p>
-
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email">Email address</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </div>
-
-          {error && <p role="alert">{error}</p>}
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
-
+    <AuthLayout
+      eyebrow="WELCOME BACK"
+      title="Good to see you again."
+      description="Sign in to pick up where you left off."
+      footer={
         <p>
-          Don't have an account? <Link to="/register">Create one</Link>
+          New to SyncSpace? <Link to="/register">Create an account</Link>
         </p>
-      </section>
-    </main>
+      }
+    >
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="auth-field">
+          <label htmlFor="email">Email address</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </div>
+
+        {error && (
+          <p className="auth-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        <button
+          className="auth-submit"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Signing in...' : 'Sign in'}
+          {!isSubmitting && <span aria-hidden="true">↗</span>}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }
