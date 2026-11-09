@@ -1,6 +1,8 @@
+
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AuthLayout from '../components/auth/AuthLayout'
 
 export default function RegisterPage() {
   const { register } = useAuth()
@@ -54,79 +56,88 @@ export default function RegisterPage() {
   }
 
   return (
-    <main>
-      <section>
-        <h1>Create your account</h1>
-        <p>Get started with SyncSpace.</p>
-
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="name">Full name</label>
-            <input
-              id="name"
-              type="text"
-              autoComplete="name"
-              placeholder="Your name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              minLength={2}
-              maxLength={100}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email">Email address</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              maxLength={254}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="At least 8 characters"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              minLength={8}
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword">Confirm password</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              placeholder="Enter your password again"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              required
-            />
-          </div>
-
-          {error && <p role="alert">{error}</p>}
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating account...' : 'Create account'}
-          </button>
-        </form>
-
+    <AuthLayout
+      eyebrow="GET STARTED"
+      title="Make room for better work."
+      description="Create your account and bring your projects into one shared space."
+      footer={
         <p>
           Already have an account? <Link to="/login">Sign in</Link>
         </p>
-      </section>
-    </main>
+      }
+    >
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="auth-field">
+          <label htmlFor="name">Full name</label>
+          <input
+            id="name"
+            type="text"
+            autoComplete="name"
+            placeholder="Your name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            minLength={2}
+            maxLength={100}
+            required
+          />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="email">Email address</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            maxLength={254}
+            required
+          />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="At least 8 characters"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            minLength={8}
+            required
+          />
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="confirmPassword">Confirm password</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Enter your password again"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            required
+          />
+        </div>
+
+        {error && (
+          <p className="auth-error" role="alert">
+            {error}
+          </p>
+        )}
+
+        <button
+          className="auth-submit"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Creating account...' : 'Create account'}
+          {!isSubmitting && <span aria-hidden="true">↗</span>}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }
