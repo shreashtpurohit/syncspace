@@ -124,6 +124,9 @@ export default function DashboardPage() {
       userEmail={user?.email ?? ''}
       workspaceName={selectedWorkspace?.name ?? 'No workspace selected'}
       workspaceRole={selectedWorkspace?.role ?? 'Member'}
+      workspaces={workspaces}
+      selectedWorkspaceId={selectedWorkspaceId}
+      onWorkspaceChange={setSelectedWorkspaceId}
     >
       <div className="dashboard-overview">
         <section className="dashboard-welcome">
@@ -157,24 +160,6 @@ export default function DashboardPage() {
               </span>
               <h2>Workspace overview</h2>
             </div>
-
-            {!isLoadingWorkspaces && workspaces.length > 0 && (
-              <label className="workspace-select-wrapper">
-                <span className="sr-only">Select workspace</span>
-                <select
-                  value={selectedWorkspaceId}
-                  onChange={(event) =>
-                    setSelectedWorkspaceId(event.target.value)
-                  }
-                >
-                  {workspaces.map((workspace) => (
-                    <option key={workspace.id} value={workspace.id}>
-                      {workspace.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
           </div>
 
           {isLoadingWorkspaces && (
@@ -288,39 +273,41 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                {!isLoadingProjects && !projectError && projects.length > 0 && (
-                  <div className="dashboard-project-grid">
-                    {projects.map((project, index) => (
-                      <article
-                        className="dashboard-project-card"
-                        key={project.id}
-                      >
-                        <div className="dashboard-project-card-top">
-                          <span className="dashboard-project-index">
-                            {String(index + 1).padStart(2, '0')}
+                {!isLoadingProjects &&
+                  !projectError &&
+                  projects.length > 0 && (
+                    <div className="dashboard-project-grid">
+                      {projects.map((project, index) => (
+                        <article
+                          className="dashboard-project-card"
+                          key={project.id}
+                        >
+                          <div className="dashboard-project-card-top">
+                            <span className="dashboard-project-index">
+                              {String(index + 1).padStart(2, '0')}
+                            </span>
+                            <span className="dashboard-project-arrow">↗</span>
+                          </div>
+
+                          <h3>{project.name}</h3>
+
+                          <p>
+                            {project.description ||
+                              'No project description provided.'}
+                          </p>
+
+                          <span className="dashboard-project-date">
+                            CREATED{' '}
+                            {new Intl.DateTimeFormat('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            }).format(new Date(project.created_at))}
                           </span>
-                          <span className="dashboard-project-arrow">↗</span>
-                        </div>
-
-                        <h3>{project.name}</h3>
-
-                        <p>
-                          {project.description ||
-                            'No project description provided.'}
-                        </p>
-
-                        <span className="dashboard-project-date">
-                          CREATED{' '}
-                          {new Intl.DateTimeFormat('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          }).format(new Date(project.created_at))}
-                        </span>
-                      </article>
-                    ))}
-                  </div>
-                )}
+                        </article>
+                      ))}
+                    </div>
+                  )}
               </div>
             </>
           )}
