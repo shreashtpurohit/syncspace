@@ -6,6 +6,7 @@ import { getWorkspaces } from '../services/workspaceService'
 import { getProjects } from '../services/projectService'
 import type { Workspace } from '../types/workspace'
 import type { Project } from '../types/project'
+import './dashboard.css'
 
 export default function DashboardPage() {
   const { user, accessToken } = useAuth()
