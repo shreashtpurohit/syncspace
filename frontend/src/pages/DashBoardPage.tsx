@@ -22,7 +22,10 @@ export default function DashboardPage() {
   const [projectError, setProjectError] = useState('')
 
   useEffect(() => {
-    if (!accessToken) return
+    if (!accessToken) {
+      setIsLoadingWorkspaces(false)
+      return
+    }
 
     let isActive = true
 
@@ -62,6 +65,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!accessToken || !selectedWorkspaceId) {
       setProjects([])
+      setIsLoadingProjects(false)
       return
     }
 
@@ -115,7 +119,12 @@ export default function DashboardPage() {
   }).format(new Date())
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      userName={user?.name ?? 'Your account'}
+      userEmail={user?.email ?? ''}
+      workspaceName={selectedWorkspace?.name ?? 'No workspace selected'}
+      workspaceRole={selectedWorkspace?.role ?? 'Member'}
+    >
       <div className="dashboard-overview">
         <section className="dashboard-welcome">
           <div>
@@ -175,21 +184,26 @@ export default function DashboardPage() {
           )}
 
           {workspaceError && (
-            <div className="dashboard-status dashboard-status-error" role="alert">
+            <div
+              className="dashboard-status dashboard-status-error"
+              role="alert"
+            >
               {workspaceError}
             </div>
           )}
 
-          {!isLoadingWorkspaces && !workspaceError && workspaces.length === 0 && (
-            <div className="dashboard-empty-state">
-              <span className="dashboard-empty-mark">+</span>
-              <h3>Your workspace starts here.</h3>
-              <p>
-                You don't belong to a workspace yet. Create one to start
-                organizing your projects.
-              </p>
-            </div>
-          )}
+          {!isLoadingWorkspaces &&
+            !workspaceError &&
+            workspaces.length === 0 && (
+              <div className="dashboard-empty-state">
+                <span className="dashboard-empty-mark">+</span>
+                <h3>Your workspace starts here.</h3>
+                <p>
+                  You don't belong to a workspace yet. Create one to start
+                  organizing your projects.
+                </p>
+              </div>
+            )}
 
           {selectedWorkspace && (
             <>
@@ -253,7 +267,10 @@ export default function DashboardPage() {
                 )}
 
                 {projectError && (
-                  <div className="dashboard-status dashboard-status-error" role="alert">
+                  <div
+                    className="dashboard-status dashboard-status-error"
+                    role="alert"
+                  >
                     {projectError}
                   </div>
                 )}
@@ -271,7 +288,7 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                {!isLoadingProjects && projects.length > 0 && (
+                {!isLoadingProjects && !projectError && projects.length > 0 && (
                   <div className="dashboard-project-grid">
                     {projects.map((project, index) => (
                       <article
