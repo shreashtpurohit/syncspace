@@ -1,7 +1,6 @@
-
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
-
+import './dashboard.css'
 interface DashboardLayoutProps {
   children: ReactNode
 }
