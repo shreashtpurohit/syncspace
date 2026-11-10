@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import DashBoardPage from './pages/DashBoardPage'
 
 function HomeRedirect() {
   const { isAuthenticated } = useAuth()
@@ -13,10 +14,6 @@ function HomeRedirect() {
       replace
     />
   )
-}
-
-function DashboardPlaceholder() {
-  return <h1>SyncSpace Dashboard</h1>
 }
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
@@ -55,7 +52,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route
           path="/dashboard"
-          element={<DashboardPlaceholder />}
+          element={<DashBoardPage />}
         />
       </Route>
 
