@@ -1,0 +1,224 @@
+
+.workspace-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 65%);
+  backdrop-filter: blur(6px);
+  animation: workspace-backdrop-in 180ms ease-out;
+}
+
+.workspace-modal {
+  width: 100%;
+  max-width: 460px;
+  padding: 32px;
+  background: #f3f3ed;
+  color: #191919;
+  border: 1px solid #d2d2ca;
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 30%);
+  animation: workspace-modal-in 220ms ease-out;
+}
+
+.workspace-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.workspace-modal-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: #77776e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.workspace-modal-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.workspace-modal-description {
+  margin: 10px 0 0;
+  color: #77776e;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.workspace-modal-close {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1px solid #d2d2ca;
+  border-radius: 8px;
+  background: transparent;
+  color: #191919;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.workspace-modal-close:hover:not(:disabled) {
+  background: #e6e6dd;
+  border-color: #191919;
+}
+
+.workspace-modal-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.workspace-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workspace-modal-form label {
+  color: #191919;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.workspace-modal-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #d2d2ca;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #191919;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.workspace-modal-input:focus {
+  border-color: #191919;
+  box-shadow: 0 0 0 3px rgb(215 244 91 / 35%);
+}
+
+.workspace-modal-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.workspace-modal-error {
+  margin: 0;
+  color: #bd3826;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.workspace-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.workspace-modal-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.workspace-modal-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.workspace-modal-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.workspace-modal-button-secondary {
+  border-color: #d2d2ca;
+  background: transparent;
+  color: #191919;
+}
+
+.workspace-modal-button-secondary:hover:not(:disabled) {
+  background: #e6e6dd;
+}
+
+.workspace-modal-button-primary {
+  background: #d7f45b;
+  color: #191919;
+}
+
+.workspace-modal-button-primary:hover:not(:disabled) {
+  background: #c8e64b;
+}
+
+@keyframes workspace-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes workspace-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .workspace-modal {
+    padding: 24px;
+  }
+
+  .workspace-modal-header h2 {
+    font-size: 24px;
+  }
+
+  .workspace-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .workspace-modal-button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-modal-backdrop,
+  .workspace-modal {
+    animation: none;
+  }
+
+  .workspace-modal-button,
+  .workspace-modal-close {
+    transition: none;
+  }
+}
