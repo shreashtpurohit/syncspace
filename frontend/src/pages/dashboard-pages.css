@@ -445,3 +445,53 @@
     animation: none;
   }
 }
+
+/* Workspace creation actions */
+
+.workspace-create-trigger {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 17px;
+  border: 1px solid #191919;
+  border-radius: 8px;
+  background: #191919;
+  color: #f3f3ed;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.workspace-create-trigger:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #191919;
+  transform: translateY(-2px);
+}
+
+.workspace-create-trigger:active {
+  transform: translateY(0);
+}
+
+.workspace-create-trigger:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-create-trigger {
+    transition: none;
+  }
+
+  .workspace-create-trigger:hover {
+    transform: none;
+  }
+}
