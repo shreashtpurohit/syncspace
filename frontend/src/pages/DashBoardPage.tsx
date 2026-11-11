@@ -3,8 +3,15 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import DashboardLayout from '../components/dashboard/DashBoardLayout'
 import CreateWorkspaceModal from '../components/dashboard/CreateWorkSpaceModal'
-import { getWorkspaces, createWorkspace } from '../services/workspaceService'
-import { getProjects } from '../services/projectService'
+import CreateProjectModal from '../components/dashboard/CreateProjectModal'
+import {
+  getWorkspaces,
+  createWorkspace,
+} from '../services/workspaceService'
+import {
+  getProjects,
+  createProject,
+} from '../services/projectService'
 import type { Workspace } from '../types/workspace'
 import type { Project } from '../types/project'
 import './dashboard-pages.css'
@@ -26,6 +33,12 @@ export default function DashboardPage() {
   const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false)
   const [createWorkspaceError, setCreateWorkspaceError] = useState('')
 
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
+    useState(false)
+  const [isCreatingProject, setIsCreatingProject] = useState(false)
+  const [createProjectError, setCreateProjectError] = useState('')
+
+  // Load workspaces
   useEffect(() => {
     if (!accessToken) {
       setIsLoadingWorkspaces(false)
@@ -67,6 +80,7 @@ export default function DashboardPage() {
     }
   }, [accessToken])
 
+  // Load projects whenever the selected workspace changes
   useEffect(() => {
     if (!accessToken || !selectedWorkspaceId) {
       setProjects([])
@@ -112,9 +126,12 @@ export default function DashboardPage() {
     }
   }, [accessToken, selectedWorkspaceId])
 
+  // Create workspace
   const handleCreateWorkspace = async (name: string) => {
     if (!accessToken) {
-      setCreateWorkspaceError('Your session has expired. Please log in again.')
+      setCreateWorkspaceError(
+        'Your session has expired. Please log in again.',
+      )
       return
     }
 
@@ -154,9 +171,67 @@ export default function DashboardPage() {
     setCreateWorkspaceError('')
   }
 
+  // Create project
+  const handleCreateProject = async (
+    name: string,
+    description: string,
+  ) => {
+    if (!accessToken || !selectedWorkspaceId) {
+      setCreateProjectError(
+        'Select a workspace before creating a project.',
+      )
+      return
+    }
+
+    try {
+      setIsCreatingProject(true)
+      setCreateProjectError('')
+
+      const response = await createProject(
+        selectedWorkspaceId,
+        {
+          name,
+          ...(description ? { description } : {}),
+        },
+        accessToken,
+      )
+
+      setProjects((currentProjects) => [
+        ...currentProjects,
+        response.project,
+      ])
+
+      setIsCreateProjectModalOpen(false)
+    } catch (error) {
+      setCreateProjectError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to create project. Please try again.',
+      )
+    } finally {
+      setIsCreatingProject(false)
+    }
+  }
+
+  const openCreateProjectModal = () => {
+    setCreateProjectError('')
+    setIsCreateProjectModalOpen(true)
+  }
+
+  const closeCreateProjectModal = () => {
+    if (isCreatingProject) return
+
+    setIsCreateProjectModalOpen(false)
+    setCreateProjectError('')
+  }
+
   const selectedWorkspace = workspaces.find(
     (workspace) => workspace.id === selectedWorkspaceId,
   )
+
+  const canCreateProject =
+    selectedWorkspace?.role === 'owner' ||
+    selectedWorkspace?.role === 'admin'
 
   const formattedDate = new Intl.DateTimeFormat('en-IN', {
     weekday: 'long',
@@ -192,7 +267,10 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="dashboard-welcome-decoration" aria-hidden="true">
+          <div
+            className="dashboard-welcome-decoration"
+            aria-hidden="true"
+          >
             <span>MAKE</span>
             <span>PROGRESS.</span>
             <div />
@@ -239,8 +317,8 @@ export default function DashboardPage() {
                 <span className="dashboard-empty-mark">+</span>
                 <h3>Your workspace starts here.</h3>
                 <p>
-                  You don't belong to a workspace yet. Create one to start
-                  organizing your projects.
+                  You don't belong to a workspace yet. Create one to
+                  start organizing your projects.
                 </p>
 
                 <button
@@ -303,9 +381,22 @@ export default function DashboardPage() {
                     <h2>Projects</h2>
                   </div>
 
-                  <span className="dashboard-project-count">
-                    {projects.length.toString().padStart(2, '0')} PROJECTS
-                  </span>
+                  <div className="dashboard-project-actions">
+                    <span className="dashboard-project-count">
+                      {projects.length.toString().padStart(2, '0')} PROJECTS
+                    </span>
+
+                    {canCreateProject && (
+                      <button
+                        type="button"
+                        className="workspace-create-trigger"
+                        onClick={openCreateProjectModal}
+                        disabled={isCreatingProject}
+                      >
+                        + New project
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {isLoadingProjects && (
@@ -330,9 +421,24 @@ export default function DashboardPage() {
                       <span className="dashboard-empty-mark">↗</span>
                       <h3>Nothing on the board yet.</h3>
                       <p>
-                        Create your first project to give your team a place
-                        to plan and collaborate.
+                        Create your first project to give your team a
+                        place to plan and collaborate.
                       </p>
+
+                      {canCreateProject ? (
+                        <button
+                          type="button"
+                          className="workspace-create-trigger"
+                          onClick={openCreateProjectModal}
+                        >
+                          Create your first project
+                        </button>
+                      ) : (
+                        <p>
+                          Only workspace admins and owners can create
+                          projects.
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -349,7 +455,9 @@ export default function DashboardPage() {
                             <span className="dashboard-project-index">
                               {String(index + 1).padStart(2, '0')}
                             </span>
-                            <span className="dashboard-project-arrow">↗</span>
+                            <span className="dashboard-project-arrow">
+                              ↗
+                            </span>
                           </div>
 
                           <h3>{project.name}</h3>
@@ -383,6 +491,14 @@ export default function DashboardPage() {
         error={createWorkspaceError}
         onClose={closeCreateWorkspaceModal}
         onSubmit={handleCreateWorkspace}
+      />
+
+      <CreateProjectModal
+        isOpen={isCreateProjectModalOpen}
+        isSubmitting={isCreatingProject}
+        error={createProjectError}
+        onClose={closeCreateProjectModal}
+        onSubmit={handleCreateProject}
       />
     </DashboardLayout>
   )
