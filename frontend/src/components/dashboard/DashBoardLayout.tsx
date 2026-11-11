@@ -1,4 +1,5 @@
 
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import type { Workspace } from '../../types/workspace'
@@ -42,9 +43,42 @@ export default function DashboardLayout({
   selectedWorkspaceId,
   onWorkspaceChange,
 }: DashboardLayoutProps) {
+  const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false)
+  const workspaceMenuRef = useRef<HTMLDivElement>(null)
+
   const userInitials = getInitials(userName)
   const workspaceInitial =
     workspaceName.trim().charAt(0).toUpperCase() || 'W'
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        workspaceMenuRef.current &&
+        !workspaceMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsWorkspaceMenuOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsWorkspaceMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  const handleWorkspaceSelect = (workspaceId: string) => {
+    onWorkspaceChange(workspaceId)
+    setIsWorkspaceMenuOpen(false)
+  }
 
   return (
     <div className="dashboard-layout">
@@ -54,36 +88,94 @@ export default function DashboardLayout({
           <span>syncspace</span>
         </div>
 
-        <div className="dashboard-workspace">
+        <div className="dashboard-workspace" ref={workspaceMenuRef}>
           <div className="workspace-avatar">{workspaceInitial}</div>
 
           <div className="workspace-details">
             <span className="workspace-label">WORKSPACE</span>
 
             {workspaces.length > 0 ? (
-              <select
-                className="workspace-sidebar-select"
-                aria-label="Switch workspace"
-                value={selectedWorkspaceId}
-                onChange={(event) =>
-                  onWorkspaceChange(event.target.value)
+              <button
+                type="button"
+                className="workspace-sidebar-trigger"
+                aria-haspopup="listbox"
+                aria-expanded={isWorkspaceMenuOpen}
+                aria-label={`Current workspace: ${workspaceName}. Switch workspace`}
+                onClick={() =>
+                  setIsWorkspaceMenuOpen((current) => !current)
                 }
               >
-                {workspaces.map((workspace) => (
-                  <option key={workspace.id} value={workspace.id}>
-                    {workspace.name}
-                  </option>
-                ))}
-              </select>
+                <span className="workspace-name">{workspaceName}</span>
+
+                <span
+                  className={`workspace-chevron ${
+                    isWorkspaceMenuOpen ? 'is-open' : ''
+                  }`}
+                  aria-hidden="true"
+                >
+                  ⌄
+                </span>
+              </button>
             ) : (
               <span className="workspace-name">{workspaceName}</span>
             )}
           </div>
 
-          {workspaces.length > 1 && (
-            <span className="workspace-chevron" aria-hidden="true">
-              ⌄
-            </span>
+          {isWorkspaceMenuOpen && (
+            <div
+              className="workspace-dropdown"
+              role="listbox"
+              aria-label="Select workspace"
+            >
+              <div className="workspace-dropdown-heading">
+                SWITCH WORKSPACE
+              </div>
+
+              <div className="workspace-dropdown-list">
+                {workspaces.map((workspace) => {
+                  const isSelected =
+                    workspace.id === selectedWorkspaceId
+
+                  return (
+                    <button
+                      key={workspace.id}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      className={`workspace-dropdown-item ${
+                        isSelected ? 'is-selected' : ''
+                      }`}
+                      onClick={() =>
+                        handleWorkspaceSelect(workspace.id)
+                      }
+                    >
+                      <span className="workspace-dropdown-avatar">
+                        {workspace.name.trim().charAt(0).toUpperCase() || 'W'}
+                      </span>
+
+                      <span className="workspace-dropdown-item-details">
+                        <span className="workspace-dropdown-item-name">
+                          {workspace.name}
+                        </span>
+
+                        <span className="workspace-dropdown-item-role">
+                          {workspace.role}
+                        </span>
+                      </span>
+
+                      {isSelected && (
+                        <span
+                          className="workspace-dropdown-check"
+                          aria-hidden="true"
+                        >
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           )}
         </div>
 
