@@ -2,11 +2,12 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import DashboardLayout from '../components/dashboard/DashBoardLayout'
-import { getWorkspaces } from '../services/workspaceService'
+import CreateWorkspaceModal from '../components/dashboard/CreateWorkSpaceModal'
+import { getWorkspaces, createWorkspace } from '../services/workspaceService'
 import { getProjects } from '../services/projectService'
 import type { Workspace } from '../types/workspace'
 import type { Project } from '../types/project'
-import './dashboard-page.css'
+import './dashboard-pages.css'
 
 export default function DashboardPage() {
   const { user, accessToken } = useAuth()
@@ -20,6 +21,10 @@ export default function DashboardPage() {
 
   const [workspaceError, setWorkspaceError] = useState('')
   const [projectError, setProjectError] = useState('')
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false)
+  const [createWorkspaceError, setCreateWorkspaceError] = useState('')
 
   useEffect(() => {
     if (!accessToken) {
@@ -107,6 +112,48 @@ export default function DashboardPage() {
     }
   }, [accessToken, selectedWorkspaceId])
 
+  const handleCreateWorkspace = async (name: string) => {
+    if (!accessToken) {
+      setCreateWorkspaceError('Your session has expired. Please log in again.')
+      return
+    }
+
+    try {
+      setIsCreatingWorkspace(true)
+      setCreateWorkspaceError('')
+
+      const response = await createWorkspace(name, accessToken)
+
+      setWorkspaces((currentWorkspaces) => [
+        ...currentWorkspaces,
+        response.workspace,
+      ])
+
+      setSelectedWorkspaceId(response.workspace.id)
+      setIsCreateModalOpen(false)
+    } catch (error) {
+      setCreateWorkspaceError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to create workspace. Please try again.',
+      )
+    } finally {
+      setIsCreatingWorkspace(false)
+    }
+  }
+
+  const openCreateWorkspaceModal = () => {
+    setCreateWorkspaceError('')
+    setIsCreateModalOpen(true)
+  }
+
+  const closeCreateWorkspaceModal = () => {
+    if (isCreatingWorkspace) return
+
+    setIsCreateModalOpen(false)
+    setCreateWorkspaceError('')
+  }
+
   const selectedWorkspace = workspaces.find(
     (workspace) => workspace.id === selectedWorkspaceId,
   )
@@ -160,6 +207,14 @@ export default function DashboardPage() {
               </span>
               <h2>Workspace overview</h2>
             </div>
+
+            <button
+              type="button"
+              className="workspace-create-trigger"
+              onClick={openCreateWorkspaceModal}
+            >
+              + New workspace
+            </button>
           </div>
 
           {isLoadingWorkspaces && (
@@ -187,6 +242,14 @@ export default function DashboardPage() {
                   You don't belong to a workspace yet. Create one to start
                   organizing your projects.
                 </p>
+
+                <button
+                  type="button"
+                  className="workspace-create-trigger"
+                  onClick={openCreateWorkspaceModal}
+                >
+                  Create your first workspace
+                </button>
               </div>
             )}
 
@@ -313,6 +376,14 @@ export default function DashboardPage() {
           )}
         </section>
       </div>
+
+      <CreateWorkspaceModal
+        isOpen={isCreateModalOpen}
+        isSubmitting={isCreatingWorkspace}
+        error={createWorkspaceError}
+        onClose={closeCreateWorkspaceModal}
+        onSubmit={handleCreateWorkspace}
+      />
     </DashboardLayout>
   )
 }
