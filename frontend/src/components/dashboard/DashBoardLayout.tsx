@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import type { Workspace } from '../../types/workspace'
-import './dashboard.css'
+import './dashboard-layout.css'
 
 interface DashboardLayoutProps {
   children: ReactNode
