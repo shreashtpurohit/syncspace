@@ -440,6 +440,12 @@
   }
 }
 
+.dashboard-project-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dashboard-overview {
     animation: none;
