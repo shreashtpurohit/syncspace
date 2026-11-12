@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
 import { requireWorkspaceRole } from "../middleware/workspaceAuth.js";
-import { createProjectController, getProjectsByWorkspaceController, } from "../controllers/projectController.js";
+import {
+  createProjectController,
+  getProjectsByWorkspaceController,
+  getProjectByIdController,
+} from "../controllers/projectController.js";
 import { createProjectMembershipController, getProjectMembersController, updateProjectMembershipRoleController, deleteProjectMembershipController, } from "../controllers/projectMembershipController.js";
 import { requireProjectRole } from "../middleware/projectAuth.js";
 import { requireProjectContext } from "../middleware/projectContext.js";
@@ -35,6 +39,13 @@ router.get(
   authenticate,
   requireWorkspaceRole("member", "admin", "owner"),
   getProjectsByWorkspaceController
+);
+
+router.get(
+  "/workspaces/:workspaceId/projects/:projectId",
+  authenticate,
+  requireWorkspaceRole("member", "admin", "owner"),
+  getProjectByIdController
 );
 
 router.post(
