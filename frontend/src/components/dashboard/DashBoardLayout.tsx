@@ -194,16 +194,29 @@ export default function DashboardLayout({
           </NavLink>
 
           {navigationItems.map((item) => (
-            <div
-              key={item.label}
-              className="navigation-item navigation-item-disabled"
-              aria-disabled="true"
-              title="Coming soon"
-            >
-              <span className="navigation-icon">{item.icon}</span>
-              <span>{item.label}</span>
-            </div>
-          ))}
+  item.label === 'Projects' ? (
+    <NavLink
+      key={item.label}
+      to="/projects"
+      className={({ isActive }) =>
+        `navigation-item ${isActive ? 'active' : ''}`
+      }
+    >
+      <span className="navigation-icon">{item.icon}</span>
+      <span>{item.label}</span>
+    </NavLink>
+  ) : (
+    <div
+      key={item.label}
+      className="navigation-item navigation-item-disabled"
+      aria-disabled="true"
+      title="Coming soon"
+    >
+      <span className="navigation-icon">{item.icon}</span>
+      <span>{item.label}</span>
+    </div>
+  )
+))}
         </nav>
 
         <div className="dashboard-sidebar-bottom">
@@ -227,7 +240,7 @@ export default function DashboardLayout({
           <div className="dashboard-breadcrumb">
             <span>{workspaceName}</span>
             <span className="breadcrumb-separator">/</span>
-            <strong>Overview</strong>
+            <strong>{window.location.pathname === '/projects' ? 'Projects' : 'Overview'}</strong>
           </div>
 
           <div className="dashboard-topbar-actions">
