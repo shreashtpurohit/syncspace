@@ -1,9 +1,11 @@
+
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashBoardPage from './pages/DashBoardPage'
+import ProjectsPage from './pages/ProjectsPage'
 
 function HomeRedirect() {
   const { isAuthenticated } = useAuth()
@@ -53,6 +55,11 @@ export default function App() {
         <Route
           path="/dashboard"
           element={<DashBoardPage />}
+        />
+
+        <Route
+          path="/projects"
+          element={<ProjectsPage />}
         />
       </Route>
 
