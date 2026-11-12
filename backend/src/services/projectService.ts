@@ -1,9 +1,12 @@
+
 import {
   createProject as createProjectRepository,
+  getProjectsByWorkspace as getProjectsByWorkspaceRepository,
+  getProjectById as getProjectByIdRepository,
 } from "../repositories/projectRepository.js";
-import { AppError } from "../errors/AppError.js";
-import { getProjectsByWorkspace as getProjectsByWorkspaceRepository } from "../repositories/projectRepository.js"; 
 
+import type { Project } from "../repositories/projectRepository.js";
+import { AppError } from "../errors/AppError.js";
 
 interface CreateProjectInput {
   workspaceId: string;
@@ -17,7 +20,7 @@ export const createProject = async ({
   createdBy,
   name,
   description,
-}: CreateProjectInput) => {
+}: CreateProjectInput): Promise<Project> => {
   const trimmedName = name.trim();
 
   if (!trimmedName) {
@@ -25,7 +28,10 @@ export const createProject = async ({
   }
 
   if (trimmedName.length > 100) {
-    throw new AppError("Project name cannot exceed 100 characters", 400);
+    throw new AppError(
+      "Project name cannot exceed 100 characters",
+      400
+    );
   }
 
   try {
@@ -37,7 +43,7 @@ export const createProject = async ({
     });
   } catch (error: unknown) {
     if (
-      typeof error === "object" && 
+      typeof error === "object" &&
       error !== null &&
       "code" in error &&
       "constraint" in error &&
@@ -45,19 +51,23 @@ export const createProject = async ({
       error.constraint === "unique_project_name_per_workspace"
     ) {
       throw new AppError(
-        "A project with this name already exists in this workspace", 409
+        "A project with this name already exists in this workspace",
+        409
       );
     }
+
     throw error;
   }
-
-  return createProjectRepository({
-    workspaceId,
-    createdBy,
-    name: trimmedName,
-    ...(description !== undefined ? { description } : {}),
-  });
 };
-export const getProjectsByWorkspace = async (workspaceId: string):Promise<unknown> => {
+
+export const getProjectsByWorkspace = async (
+  workspaceId: string
+): Promise<Project[]> => {
   return getProjectsByWorkspaceRepository(workspaceId);
+};
+
+export const getProjectById = async (
+  projectId: string
+): Promise<Project | null> => {
+  return getProjectByIdRepository(projectId);
 };
