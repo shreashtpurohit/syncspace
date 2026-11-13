@@ -5,6 +5,7 @@ import {
   createProjectController,
   getProjectsByWorkspaceController,
   getProjectByIdController,
+  updateProjectController
 } from "../controllers/projectController.js";
 import { createProjectMembershipController, getProjectMembersController, updateProjectMembershipRoleController, deleteProjectMembershipController, } from "../controllers/projectMembershipController.js";
 import { requireProjectRole } from "../middleware/projectAuth.js";
@@ -46,6 +47,12 @@ router.get(
   authenticate,
   requireWorkspaceRole("member", "admin", "owner"),
   getProjectByIdController
+);
+router.patch(
+  "/workspaces/:workspaceId/projects/:projectId",
+  authenticate,
+  requireWorkspaceRole("admin", "owner"),
+  updateProjectController
 );
 
 router.post(
