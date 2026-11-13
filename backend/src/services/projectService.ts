@@ -4,6 +4,7 @@ import {
   getProjectsByWorkspace as getProjectsByWorkspaceRepository,
   getProjectById as getProjectByIdRepository,
   updateProject as updateProjectRepository,
+  deleteProject as deleteProjectRepository,
 } from "../repositories/projectRepository.js";
 
 import type { Project } from "../repositories/projectRepository.js";
@@ -132,4 +133,15 @@ export const updateProject = async ({
 
     throw error;
   }
+};
+export const deleteProject = async (
+  projectId: string
+): Promise<Project> => {
+  const project = await deleteProjectRepository(projectId);
+
+  if (!project) {
+    throw new AppError("Project not found", 404);
+  }
+
+  return project;
 };
