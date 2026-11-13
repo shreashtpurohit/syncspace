@@ -6,6 +6,7 @@ import {
   getProjectsByWorkspace,
   getProjectById,
   updateProject,
+  deleteProject,
 } from "../services/projectService.js";
 
 export const createProjectController = async (
@@ -145,6 +146,37 @@ export const updateProjectController = async (
 
     return res.status(200).json({
       project,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteProjectController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { workspaceId, projectId } = req.params;
+
+    if (typeof workspaceId !== "string" || typeof projectId !== "string") {
+      return res.status(400).json({
+        message: "Invalid workspace or project ID",
+      });
+    }
+
+    const existingProject = await getProjectById(projectId);
+
+    if (!existingProject || existingProject.workspace_id !== workspaceId) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    await deleteProject(projectId);
+
+    return res.status(200).json({
+      message: "Project deleted successfully",
     });
   } catch (error) {
     next(error);
