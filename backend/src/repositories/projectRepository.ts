@@ -123,3 +123,24 @@ export const updateProject = async ({
 
   return result.rows[0] ?? null;
 };
+export const deleteProject = async (
+  projectId: string
+): Promise<Project | null> => {
+  const result = await pool.query<Project>(
+    `
+      DELETE FROM projects
+      WHERE id = $1
+      RETURNING
+        id,
+        workspace_id,
+        created_by,
+        name,
+        description,
+        created_at,
+        updated_at
+    `,
+    [projectId]
+  );
+
+  return result.rows[0] ?? null;
+};
