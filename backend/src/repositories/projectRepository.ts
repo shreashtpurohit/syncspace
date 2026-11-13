@@ -89,3 +89,37 @@ export const getProjectById = async (projectId: string) => {
 
   return result.rows[0] ?? null;
 };
+
+export interface UpdateProjectData {
+  projectId: string;
+  name: string;
+  description?: string;
+}
+
+export const updateProject = async ({
+  projectId,
+  name,
+  description,
+}: UpdateProjectData): Promise<Project | null> => {
+  const result = await pool.query<Project>(
+    `
+    UPDATE projects
+    SET
+      name = $2,
+      description = COALESCE($3, description),
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING
+      id,
+      workspace_id,
+      created_by,
+      name,
+      description,
+      created_at,
+      updated_at
+    `,
+    [projectId, name, description ?? null]
+  );
+
+  return result.rows[0] ?? null;
+};
