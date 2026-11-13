@@ -5,6 +5,7 @@ import {
   createProject,
   getProjectsByWorkspace,
   getProjectById,
+  updateProject,
 } from "../services/projectService.js";
 
 export const createProjectController = async (
@@ -93,6 +94,54 @@ export const getProjectByIdController = async (
         message: "Project not found",
       });
     }
+
+    return res.status(200).json({
+      project,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateProjectController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { workspaceId, projectId } = req.params;
+    const { name, description } = req.body;
+
+    if (
+      !workspaceId ||
+      Array.isArray(workspaceId) ||
+      !projectId ||
+      Array.isArray(projectId)
+    ) {
+      return res.status(400).json({
+        message: "Invalid workspace or project ID",
+      });
+    }
+
+    if (typeof name !== "string") {
+      return res.status(400).json({
+        message: "Project name is required",
+      });
+    }
+
+    const existingProject = await getProjectById(projectId);
+
+    if (!existingProject || existingProject.workspace_id !== workspaceId) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    const project = await updateProject({
+      projectId,
+      name,
+      ...(description !== undefined ? { description } : {}),
+    });
 
     return res.status(200).json({
       project,
