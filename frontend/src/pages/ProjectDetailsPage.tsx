@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import DashboardLayout from '../components/dashboard/DashBoardLayout'
+import EditProjectModal from '../components/dashboard/EditProjectModal'
 import { getWorkspaces } from '../services/workspaceService'
-import { getProject } from '../services/projectService'
+import { getProject, updateProject } from '../services/projectService'
 import type { Workspace } from '../types/workspace'
 import type { Project } from '../types/project'
 import './project-details-page.css'
+import '../components/dashboard/create-project-modal.css'
 
 export default function ProjectDetailsPage() {
   const { workspaceId, projectId } = useParams()
@@ -18,6 +20,10 @@ export default function ProjectDetailsPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [updateError, setUpdateError] = useState('')
 
   useEffect(() => {
     if (!accessToken || !workspaceId || !projectId) {
@@ -65,6 +71,43 @@ export default function ProjectDetailsPage() {
   const selectedWorkspace = workspaces.find(
     (workspace) => workspace.id === workspaceId,
   )
+
+  const canManageProject =
+    selectedWorkspace?.role === 'owner' ||
+    selectedWorkspace?.role === 'admin'
+
+  const handleUpdateProject = async (
+    name: string,
+    description: string,
+  ) => {
+    if (!accessToken || !workspaceId || !projectId) return
+
+    try {
+      setIsUpdating(true)
+      setUpdateError('')
+
+      const response = await updateProject(
+        workspaceId,
+        projectId,
+        {
+          name,
+          description,
+        },
+        accessToken,
+      )
+
+      setProject(response.project)
+      setIsEditModalOpen(false)
+    } catch (error) {
+      setUpdateError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to update project. Please try again.',
+      )
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   const formattedDate = (date: string) =>
     new Intl.DateTimeFormat('en-IN', {
@@ -119,9 +162,24 @@ export default function ProjectDetailsPage() {
                 </p>
               </div>
 
-              <span className="projects-directory-status">
-                ACTIVE
-              </span>
+              <div className="project-details-header-actions">
+                <span className="projects-directory-status">
+                  ACTIVE
+                </span>
+
+                {canManageProject && (
+                  <button
+                    type="button"
+                    className="project-details-edit-button"
+                    onClick={() => {
+                      setUpdateError('')
+                      setIsEditModalOpen(true)
+                    }}
+                  >
+                    Edit project
+                  </button>
+                )}
+              </div>
             </header>
 
             <section className="project-details-information">
@@ -154,6 +212,18 @@ export default function ProjectDetailsPage() {
               </p>
             </section>
           </>
+        )}
+
+        {project && (
+          <EditProjectModal
+            isOpen={isEditModalOpen}
+            isSubmitting={isUpdating}
+            error={updateError}
+            initialName={project.name}
+            initialDescription={project.description ?? ''}
+            onClose={() => setIsEditModalOpen(false)}
+            onSubmit={handleUpdateProject}
+          />
         )}
       </main>
     </DashboardLayout>
