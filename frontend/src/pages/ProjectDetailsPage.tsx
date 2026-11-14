@@ -4,8 +4,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import DashboardLayout from '../components/dashboard/DashBoardLayout'
 import EditProjectModal from '../components/dashboard/EditProjectModal'
+import DeleteProjectModal from '../components/dashboard/DeleteProjectModal'
 import { getWorkspaces } from '../services/workspaceService'
-import { getProject, updateProject } from '../services/projectService'
+import {
+  getProject,
+  updateProject,
+  deleteProject,
+} from '../services/projectService'
 import type { Workspace } from '../types/workspace'
 import type { Project } from '../types/project'
 import './project-details-page.css'
@@ -24,6 +29,10 @@ export default function ProjectDetailsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateError, setUpdateError] = useState('')
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     if (!accessToken || !workspaceId || !projectId) {
@@ -109,6 +118,31 @@ export default function ProjectDetailsPage() {
     }
   }
 
+  const handleDeleteProject = async () => {
+    if (!accessToken || !workspaceId || !projectId) return
+
+    try {
+      setIsDeleting(true)
+      setDeleteError('')
+
+      await deleteProject(
+        workspaceId,
+        projectId,
+        accessToken,
+      )
+
+      navigate('/projects', { replace: true })
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to delete project. Please try again.',
+      )
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   const formattedDate = (date: string) =>
     new Intl.DateTimeFormat('en-IN', {
       day: 'numeric',
@@ -168,16 +202,29 @@ export default function ProjectDetailsPage() {
                 </span>
 
                 {canManageProject && (
-                  <button
-                    type="button"
-                    className="project-details-edit-button"
-                    onClick={() => {
-                      setUpdateError('')
-                      setIsEditModalOpen(true)
-                    }}
-                  >
-                    Edit project
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className="project-details-edit-button"
+                      onClick={() => {
+                        setUpdateError('')
+                        setIsEditModalOpen(true)
+                      }}
+                    >
+                      Edit project
+                    </button>
+
+                    <button
+                      type="button"
+                      className="project-details-delete-button"
+                      onClick={() => {
+                        setDeleteError('')
+                        setIsDeleteModalOpen(true)
+                      }}
+                    >
+                      Delete project
+                    </button>
+                  </>
                 )}
               </div>
             </header>
@@ -215,15 +262,26 @@ export default function ProjectDetailsPage() {
         )}
 
         {project && (
-          <EditProjectModal
-            isOpen={isEditModalOpen}
-            isSubmitting={isUpdating}
-            error={updateError}
-            initialName={project.name}
-            initialDescription={project.description ?? ''}
-            onClose={() => setIsEditModalOpen(false)}
-            onSubmit={handleUpdateProject}
-          />
+          <>
+            <EditProjectModal
+              isOpen={isEditModalOpen}
+              isSubmitting={isUpdating}
+              error={updateError}
+              initialName={project.name}
+              initialDescription={project.description ?? ''}
+              onClose={() => setIsEditModalOpen(false)}
+              onSubmit={handleUpdateProject}
+            />
+
+            <DeleteProjectModal
+              isOpen={isDeleteModalOpen}
+              projectName={project.name}
+              isDeleting={isDeleting}
+              error={deleteError}
+              onClose={() => setIsDeleteModalOpen(false)}
+              onConfirm={handleDeleteProject}
+            />
+          </>
         )}
       </main>
     </DashboardLayout>
