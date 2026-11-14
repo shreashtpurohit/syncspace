@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import DashboardLayout from '../components/dashboard/DashBoardLayout'
 import { getWorkspaces } from '../services/workspaceService'
@@ -10,6 +11,7 @@ import './projects-page.css'
 
 export default function ProjectsPage() {
   const { user, accessToken } = useAuth()
+  const navigate = useNavigate()
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('')
@@ -249,7 +251,18 @@ export default function ProjectsPage() {
                     {filteredProjects.map((project, index) => (
                       <article
                         className="projects-directory-card"
-                        key={project.id}
+               key={project.id}
+               role="link"
+               tabIndex={0}
+               onClick={() =>
+                 navigate(`/workspaces/${selectedWorkspaceId}/projects/${project.id}`)
+               }
+               onKeyDown={(event) => {
+                 if (event.key === 'Enter' || event.key === ' ') {
+                   event.preventDefault()
+                   navigate(`/workspaces/${selectedWorkspaceId}/projects/${project.id}`)
+                 }
+               }}  
                       >
                         <div className="projects-directory-card-top">
                           <span>
