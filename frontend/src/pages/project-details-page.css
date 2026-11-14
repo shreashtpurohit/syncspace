@@ -159,3 +159,50 @@
     transition: none;
   }
 }
+
+.project-details-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.project-details-edit-button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #191919;
+  border-radius: 8px;
+  background: #d7f45b;
+  color: #191919;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.project-details-edit-button:hover {
+  background: #c8e64b;
+  transform: translateY(-2px);
+}
+
+.project-details-edit-button:focus-visible {
+  outline: 3px solid rgb(215 244 91 / 65%);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .project-details-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-details-edit-button {
+    transition: none;
+  }
+}
