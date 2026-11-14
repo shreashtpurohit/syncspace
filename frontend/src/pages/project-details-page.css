@@ -206,3 +206,47 @@
     transition: none;
   }
 }
+
+.project-details-delete-button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #bd3826;
+  border-radius: 8px;
+  background: transparent;
+  color: #bd3826;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.project-details-delete-button:hover {
+  background: #bd3826;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.delete-project-confirm-button {
+  background: #bd3826;
+  color: #ffffff;
+}
+
+.delete-project-confirm-button:hover:not(:disabled) {
+  background: #a92e20;
+}
+
+.project-details-delete-button:focus-visible,
+.delete-project-confirm-button:focus-visible {
+  outline: 3px solid rgb(189 56 38 / 25%);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-details-delete-button {
+    transition: none;
+  }
+}
