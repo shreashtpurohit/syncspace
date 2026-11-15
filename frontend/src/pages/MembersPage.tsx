@@ -263,7 +263,7 @@ export default function MembersPage() {
                       <span>JOINED</span>
                     </div>
 
-                    {filteredMembers.map((member, index) => (
+                    {filteredMembers.map((member) => (
                       <article
                         className="members-directory-row"
                         key={member.id}
