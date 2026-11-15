@@ -7,7 +7,7 @@ import RegisterPage from './pages/RegisterPage'
 import DashBoardPage from './pages/DashBoardPage'
 import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailsPage from './pages/ProjectDetailsPage'
-
+import MembersPage from './pages/MembersPage'
 
 function HomeRedirect() {
   const { isAuthenticated } = useAuth()
@@ -54,20 +54,16 @@ export default function App() {
       />
 
       <Route element={<ProtectedRoute />}>
-        <Route
-          path="/dashboard"
-          element={<DashBoardPage />}
-        />
+        <Route path="/dashboard" element={<DashBoardPage />} />
+
+        <Route path="/projects" element={<ProjectsPage />} />
+
+        <Route path="/members" element={<MembersPage />} />
 
         <Route
-          path="/projects"
-          element={<ProjectsPage />}
+          path="/workspaces/:workspaceId/projects/:projectId"
+          element={<ProjectDetailsPage />}
         />
-
-        <Route
-  path="/workspaces/:workspaceId/projects/:projectId"
-  element={<ProjectDetailsPage />}
-/>
       </Route>
 
       <Route path="*" element={<HomeRedirect />} />
