@@ -1,34 +1,26 @@
 import "dotenv/config";
 import express from "express";
+import cookieParser from "cookie-parser";
+
 import workspaceRoutes from "./routes/workspaceRoutes.js";
-import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/authRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { env } from "./config/env.js";
+
 const app = express();
 
-const PORT = 5000;
-
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(authRoutes);
-
-//app.post("/debug", (req, res) => {
-//  res.json({
-//    message: "POST works",
-//    body: req.body,
-//  });
-//});
-
 app.use(workspaceRoutes);
 
-app.get("/api/health", (req, res) => {
-    res.json({
-        status: "ok",
-        message:"SyncSpace API is running",
-    });
+app.get("/api/health", (_req, res) => {
+  res.status(200).json({ message: "SyncSpace API is running" });
 });
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`SyncSpace API running on port ${PORT}`);
+app.listen(env.PORT, () => {
+  console.log(`Server running on port ${env.PORT}`);
 });
