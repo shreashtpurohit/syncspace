@@ -4,6 +4,7 @@ import { AppError } from "../errors/AppError.js";
 import {
   createUser,
   findUserByEmail,
+  findUserById,
 } from "../repositories/userRepository.js";
 import type { PublicUser } from "../repositories/userRepository.js";
 import { createRefreshSession } from "../repositories/refreshSessionRepository.js";
@@ -14,6 +15,11 @@ import {
 } from "../utils/refreshToken.js";
 import { REFRESH_TOKEN_MAX_AGE } from "../utils/authCookies.js";
 import { generateAccessToken } from "../utils/jwt.js";
+import {
+  findRefreshSessionByTokenHash,
+  rotateRefreshSession,
+  revokeRefreshSessionFamily,
+} from "../repositories/refreshSessionRepository.js";
 
 interface RegisterInput {
   name: string;
@@ -125,4 +131,70 @@ export const loginUser = async (
     accessToken,
     refreshToken,
   };
+};
+export const refreshAuthSession = async (
+  refreshToken: string,
+): Promise<AuthResult> => {
+  const tokenHash = hashRefreshToken(refreshToken);
+
+  const currentSession = await findRefreshSessionByTokenHash(tokenHash);
+
+  if (!currentSession) {
+    throw new AppError("Invalid refresh token", 401);
+  }
+
+  const newRefreshToken = generateRefreshToken();
+
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MAX_AGE);
+
+  const rotation = await rotateRefreshSession(
+    currentSession.id,
+    hashRefreshToken(newRefreshToken),
+    expiresAt,
+  );
+
+  if (rotation.status !== "rotated") {
+    throw new AppError("Refresh session is invalid or expired", 401);
+  }
+
+  const user = await findUserByEmail(
+    // Resolve the user by ID in the next step instead.
+    "",
+  );
+
+  if (!user) {
+    await revokeRefreshSessionFamily(currentSession.family_id);
+    throw new AppError("User not found", 404);
+  }
+
+  const publicUser = await findUserById(currentSession.user_id);
+
+  if (!publicUser) {
+    await revokeRefreshSessionFamily(currentSession.family_id);
+    throw new AppError("User not found", 404);
+  }
+
+  return {
+    user: publicUser,
+    accessToken: generateAccessToken(publicUser.id),
+    refreshToken: newRefreshToken,
+  };
+};
+
+export const logoutUser = async (
+  refreshToken: string | undefined,
+): Promise<void> => {
+  if (!refreshToken) {
+    return;
+  }
+
+  const tokenHash = hashRefreshToken(refreshToken);
+
+  const session = await findRefreshSessionByTokenHash(tokenHash);
+
+  if (!session) {
+    return;
+  }
+
+  await revokeRefreshSessionFamily(session.family_id);
 };
