@@ -7,13 +7,14 @@ import {
 } from "../services/authService.js";
 import { findUserById } from "../repositories/userRepository.js";
 import { AppError } from "../errors/AppError.js";
+import { setAuthCookies } from "../utils/authCookies.js";
 
 const passwordSchema = z
   .string()
   .min(8, "Password must contain at least 8 characters")
   .refine(
     (password) => Buffer.byteLength(password, "utf8") <= 72,
-    "Password must not exceed 72 bytes"
+    "Password must not exceed 72 bytes",
   );
 
 const registerSchema = z.object({
@@ -30,7 +31,7 @@ const loginSchema = z.object({
 export const registerController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const validation = registerSchema.safeParse(req.body);
@@ -44,9 +45,11 @@ export const registerController = async (
 
     const result = await registerUser(validation.data);
 
+    setAuthCookies(res, result.accessToken, result.refreshToken);
+
     return res.status(201).json({
       message: "User registered successfully",
-      ...result,
+      user: result.user,
     });
   } catch (error) {
     next(error);
@@ -56,7 +59,7 @@ export const registerController = async (
 export const loginController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const validation = loginSchema.safeParse(req.body);
@@ -70,9 +73,11 @@ export const loginController = async (
 
     const result = await loginUser(validation.data);
 
+    setAuthCookies(res, result.accessToken, result.refreshToken);
+
     return res.status(200).json({
       message: "Login successful",
-      ...result,
+      user: result.user,
     });
   } catch (error) {
     next(error);
@@ -82,7 +87,7 @@ export const loginController = async (
 export const getCurrentUserController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const user = await findUserById(req.user.id);
