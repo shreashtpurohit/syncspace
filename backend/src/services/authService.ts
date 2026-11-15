@@ -6,6 +6,13 @@ import {
   findUserByEmail,
 } from "../repositories/userRepository.js";
 import type { PublicUser } from "../repositories/userRepository.js";
+import { createRefreshSession } from "../repositories/refreshSessionRepository.js";
+import {
+  generateRefreshToken,
+  generateSessionFamilyId,
+  hashRefreshToken,
+} from "../utils/refreshToken.js";
+import { REFRESH_TOKEN_MAX_AGE } from "../utils/authCookies.js";
 import { generateAccessToken } from "../utils/jwt.js";
 
 interface RegisterInput {
@@ -22,12 +29,29 @@ interface LoginInput {
 interface AuthResult {
   user: PublicUser;
   accessToken: string;
+  refreshToken: string;
 }
 
 const SALT_ROUNDS = 12;
 
+const createAuthSession = async (userId: string) => {
+  const refreshToken = generateRefreshToken();
+  const familyId = generateSessionFamilyId();
+
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MAX_AGE);
+
+  await createRefreshSession({
+    userId,
+    familyId,
+    tokenHash: hashRefreshToken(refreshToken),
+    expiresAt,
+  });
+
+  return refreshToken;
+};
+
 export const registerUser = async (
-  input: RegisterInput
+  input: RegisterInput,
 ): Promise<AuthResult> => {
   const name = input.name.trim();
   const email = input.email.trim().toLowerCase();
@@ -42,21 +66,16 @@ export const registerUser = async (
     throw new AppError("Email is already registered", 409);
   }
 
-  const passwordHash = await bcrypt.hash(
-    input.password,
-    SALT_ROUNDS
-  );
+  const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
+
+  let user: PublicUser;
 
   try {
-    const user = await createUser({
+    user = await createUser({
       name,
       email,
       passwordHash,
     });
-
-    const accessToken = generateAccessToken(user.id);
-
-    return { user, accessToken };
   } catch (error) {
     if (
       typeof error === "object" &&
@@ -69,10 +88,15 @@ export const registerUser = async (
 
     throw error;
   }
+
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = await createAuthSession(user.id);
+
+  return { user, accessToken, refreshToken };
 };
 
 export const loginUser = async (
-  input: LoginInput
+  input: LoginInput,
 ): Promise<AuthResult> => {
   const email = input.email.trim().toLowerCase();
 
@@ -84,7 +108,7 @@ export const loginUser = async (
 
   const passwordMatches = await bcrypt.compare(
     input.password,
-    user.password_hash
+    user.password_hash,
   );
 
   if (!passwordMatches) {
@@ -94,9 +118,11 @@ export const loginUser = async (
   const { password_hash: _passwordHash, ...publicUser } = user;
 
   const accessToken = generateAccessToken(user.id);
+  const refreshToken = await createAuthSession(user.id);
 
   return {
     user: publicUser,
     accessToken,
+    refreshToken,
   };
 };
