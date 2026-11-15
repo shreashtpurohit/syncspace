@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import type { Workspace } from '../../types/workspace'
 import './dashboard-layout.css'
 
@@ -17,9 +17,9 @@ interface DashboardLayoutProps {
 }
 
 const navigationItems = [
-  { label: 'Projects', icon: '▦' },
+  { label: 'Projects', icon: '▦', path: '/projects' },
   { label: 'My Tasks', icon: '☷' },
-  { label: 'Members', icon: '♙' },
+  { label: 'Members', icon: '♙', path: '/members' },
 ]
 
 function getInitials(name: string) {
@@ -45,10 +45,20 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false)
   const workspaceMenuRef = useRef<HTMLDivElement>(null)
+  const location = useLocation()
 
   const userInitials = getInitials(userName)
   const workspaceInitial =
     workspaceName.trim().charAt(0).toUpperCase() || 'W'
+
+  const currentPage =
+    location.pathname === '/projects'
+      ? 'Projects'
+      : location.pathname === '/members'
+        ? 'Members'
+        : location.pathname.startsWith('/workspaces/')
+          ? 'Project Details'
+          : 'Overview'
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -193,30 +203,30 @@ export default function DashboardLayout({
             <span>Overview</span>
           </NavLink>
 
-          {navigationItems.map((item) => (
-  item.label === 'Projects' ? (
-    <NavLink
-      key={item.label}
-      to="/projects"
-      className={({ isActive }) =>
-        `navigation-item ${isActive ? 'active' : ''}`
-      }
-    >
-      <span className="navigation-icon">{item.icon}</span>
-      <span>{item.label}</span>
-    </NavLink>
-  ) : (
-    <div
-      key={item.label}
-      className="navigation-item navigation-item-disabled"
-      aria-disabled="true"
-      title="Coming soon"
-    >
-      <span className="navigation-icon">{item.icon}</span>
-      <span>{item.label}</span>
-    </div>
-  )
-))}
+          {navigationItems.map((item) =>
+            item.path ? (
+              <NavLink
+                key={item.label}
+                to={item.path}
+                className={({ isActive }) =>
+                  `navigation-item ${isActive ? 'active' : ''}`
+                }
+              >
+                <span className="navigation-icon">{item.icon}</span>
+                <span>{item.label}</span>
+              </NavLink>
+            ) : (
+              <div
+                key={item.label}
+                className="navigation-item navigation-item-disabled"
+                aria-disabled="true"
+                title="Coming soon"
+              >
+                <span className="navigation-icon">{item.icon}</span>
+                <span>{item.label}</span>
+              </div>
+            ),
+          )}
         </nav>
 
         <div className="dashboard-sidebar-bottom">
@@ -240,7 +250,7 @@ export default function DashboardLayout({
           <div className="dashboard-breadcrumb">
             <span>{workspaceName}</span>
             <span className="breadcrumb-separator">/</span>
-            <strong>{window.location.pathname === '/projects' ? 'Projects' : 'Overview'}</strong>
+            <strong>{currentPage}</strong>
           </div>
 
           <div className="dashboard-topbar-actions">
