@@ -1,11 +1,16 @@
 import pool from "../db/pool.js";
 
 export interface Membership {
-    id: string,
-    user_id: string,
-    workspace_id: string,
-    role: "owner" | "admin" | "member";
-    created_at: Date;
+  id: string
+  user_id: string
+  workspace_id: string
+  role: "owner" | "admin" | "member"
+  created_at: Date
+}
+
+export interface WorkspaceMember extends Membership {
+  name: string
+  email: string
 }
 
 export const getMembershipById = async (
@@ -30,24 +35,27 @@ export const getMembershipById = async (
 
 export const getWorkspaceMembers = async (
   workspaceId: string
-): Promise<Membership[]> => {
-  const result = await pool.query<Membership>(
+): Promise<WorkspaceMember[]> => {
+  const result = await pool.query<WorkspaceMember>(
     `
     SELECT
       m.id,
       m.user_id,
       m.workspace_id,
       m.role,
-      m.created_at
+      m.created_at,
+      u.name,
+      u.email
     FROM memberships m
+    INNER JOIN users u ON u.id = m.user_id
     WHERE m.workspace_id = $1
     ORDER BY m.created_at ASC
     `,
     [workspaceId]
-  );
+  )
 
-  return result.rows;
-};
+  return result.rows
+}
 
 export const createMembership = async (
   userId: string,
