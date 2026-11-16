@@ -1,3 +1,4 @@
+
 export interface User {
   id: string
   name: string
@@ -9,7 +10,6 @@ export interface User {
 export interface AuthResponse {
   message: string
   user: User
-  accessToken: string
 }
 
 export interface CurrentUserResponse {
