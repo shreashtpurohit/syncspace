@@ -9,6 +9,21 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(5000),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   APP_ORIGIN: z.string().url().default("http://localhost:5173"),
+
+  // OAuth configuration
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_CALLBACK_URL: z
+    .string()
+    .url()
+    .default("http://localhost:5000/auth/google/callback"),
+
+  GITHUB_CLIENT_ID: z.string().optional(),
+  GITHUB_CLIENT_SECRET: z.string().optional(),
+  GITHUB_CALLBACK_URL: z
+    .string()
+    .url()
+    .default("http://localhost:5000/auth/github/callback"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
