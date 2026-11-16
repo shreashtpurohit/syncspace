@@ -1,7 +1,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import {
+  NavLink,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import type { Workspace } from '../../types/workspace'
 import './dashboard-layout.css'
 
@@ -44,10 +49,17 @@ export default function DashboardLayout({
   onWorkspaceChange,
 }: DashboardLayoutProps) {
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+
   const workspaceMenuRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
   const location = useLocation()
+  const navigate = useNavigate()
+  const { logout } = useAuth()
 
   const userInitials = getInitials(userName)
+
   const workspaceInitial =
     workspaceName.trim().charAt(0).toUpperCase() || 'W'
 
@@ -62,17 +74,27 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node
+
       if (
         workspaceMenuRef.current &&
-        !workspaceMenuRef.current.contains(event.target as Node)
+        !workspaceMenuRef.current.contains(target)
       ) {
         setIsWorkspaceMenuOpen(false)
+      }
+
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(target)
+      ) {
+        setIsUserMenuOpen(false)
       }
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsWorkspaceMenuOpen(false)
+        setIsUserMenuOpen(false)
       }
     }
 
@@ -88,6 +110,16 @@ export default function DashboardLayout({
   const handleWorkspaceSelect = (workspaceId: string) => {
     onWorkspaceChange(workspaceId)
     setIsWorkspaceMenuOpen(false)
+  }
+
+  const handleLogout = async () => {
+    setIsUserMenuOpen(false)
+
+    try {
+      await logout()
+    } finally {
+      navigate('/login', { replace: true })
+    }
   }
 
   return (
@@ -232,15 +264,58 @@ export default function DashboardLayout({
         <div className="dashboard-sidebar-bottom">
           <div className="sidebar-divider" />
 
-          <div className="dashboard-user">
-            <div className="user-avatar">{userInitials}</div>
+          <div className="dashboard-user-menu" ref={userMenuRef}>
+            <div className="dashboard-user">
+              <div className="user-avatar">{userInitials}</div>
 
-            <div className="user-details">
-              <span className="user-name">{userName}</span>
-              <span className="user-role">{workspaceRole}</span>
+              <div className="user-details">
+                <span className="user-name">{userName}</span>
+                <span className="user-role">{workspaceRole}</span>
+              </div>
+
+              <button
+                type="button"
+                className="user-menu-trigger"
+                aria-label="Open account menu"
+                aria-haspopup="true"
+                aria-expanded={isUserMenuOpen}
+                onClick={() =>
+                  setIsUserMenuOpen((current) => !current)
+                }
+              >
+                ···
+              </button>
             </div>
 
-            <span className="user-menu-icon">···</span>
+            {isUserMenuOpen && (
+              <div className="user-dropdown" role="menu">
+                <div className="user-dropdown-account">
+                  <span className="user-dropdown-name">
+                    {userName}
+                  </span>
+
+                  <span className="user-dropdown-email">
+                    {userEmail}
+                  </span>
+
+                  <span className="user-dropdown-role">
+                    {workspaceRole}
+                  </span>
+                </div>
+
+                <div className="user-dropdown-divider" />
+
+                <button
+                  type="button"
+                  className="user-dropdown-logout"
+                  role="menuitem"
+                  onClick={handleLogout}
+                >
+                  <span aria-hidden="true">↗</span>
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>
