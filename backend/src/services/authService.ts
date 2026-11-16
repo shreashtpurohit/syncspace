@@ -157,15 +157,6 @@ export const refreshAuthSession = async (
     throw new AppError("Refresh session is invalid or expired", 401);
   }
 
-  const user = await findUserByEmail(
-    // Resolve the user by ID in the next step instead.
-    "",
-  );
-
-  if (!user) {
-    await revokeRefreshSessionFamily(currentSession.family_id);
-    throw new AppError("User not found", 404);
-  }
 
   const publicUser = await findUserById(currentSession.user_id);
 
