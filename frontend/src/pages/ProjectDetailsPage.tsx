@@ -18,7 +18,7 @@ import '../components/dashboard/create-project-modal.css'
 
 export default function ProjectDetailsPage() {
   const { workspaceId, projectId } = useParams()
-  const { user, accessToken } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
@@ -35,7 +35,7 @@ export default function ProjectDetailsPage() {
   const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
-    if (!accessToken || !workspaceId || !projectId) {
+    if (!workspaceId || !projectId) {
       setError('Invalid project URL or authentication session.')
       setIsLoading(false)
       return
@@ -49,8 +49,8 @@ export default function ProjectDetailsPage() {
         setError('')
 
         const [workspaceResponse, projectResponse] = await Promise.all([
-          getWorkspaces(accessToken),
-          getProject(workspaceId, projectId, accessToken),
+          getWorkspaces(),
+          getProject(workspaceId, projectId),
         ])
 
         if (!isActive) return
@@ -75,7 +75,7 @@ export default function ProjectDetailsPage() {
     return () => {
       isActive = false
     }
-  }, [accessToken, workspaceId, projectId])
+  }, [workspaceId, projectId])
 
   const selectedWorkspace = workspaces.find(
     (workspace) => workspace.id === workspaceId,
@@ -89,7 +89,7 @@ export default function ProjectDetailsPage() {
     name: string,
     description: string,
   ) => {
-    if (!accessToken || !workspaceId || !projectId) return
+    if (!workspaceId || !projectId) return
 
     try {
       setIsUpdating(true)
@@ -102,7 +102,6 @@ export default function ProjectDetailsPage() {
           name,
           description,
         },
-        accessToken,
       )
 
       setProject(response.project)
@@ -119,7 +118,7 @@ export default function ProjectDetailsPage() {
   }
 
   const handleDeleteProject = async () => {
-    if (!accessToken || !workspaceId || !projectId) return
+    if (!workspaceId || !projectId) return
 
     try {
       setIsDeleting(true)
@@ -128,7 +127,6 @@ export default function ProjectDetailsPage() {
       await deleteProject(
         workspaceId,
         projectId,
-        accessToken,
       )
 
       navigate('/projects', { replace: true })
