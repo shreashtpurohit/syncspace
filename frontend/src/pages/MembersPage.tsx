@@ -11,7 +11,7 @@ import type { WorkspaceMember } from '../types/workspaceMember'
 import './members-page.css'
 
 export default function MembersPage() {
-  const { user, accessToken } = useAuth()
+  const { user} = useAuth()
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('')
@@ -25,11 +25,7 @@ export default function MembersPage() {
   const [memberError, setMemberError] = useState('')
 
   useEffect(() => {
-    if (!accessToken) {
-      setIsLoadingWorkspaces(false)
-      return
-    }
-
+    
     let isActive = true
 
     const loadWorkspaces = async () => {
@@ -37,7 +33,7 @@ export default function MembersPage() {
         setIsLoadingWorkspaces(true)
         setWorkspaceError('')
 
-        const response = await getWorkspaces(accessToken)
+        const response = await getWorkspaces()
 
         if (!isActive) return
 
@@ -72,10 +68,10 @@ export default function MembersPage() {
     return () => {
       isActive = false
     }
-  }, [accessToken])
+  }, [])
 
   useEffect(() => {
-    if (!accessToken || !selectedWorkspaceId) {
+    if (!selectedWorkspaceId) {
       setMembers([])
       setIsLoadingMembers(false)
       return
@@ -91,7 +87,6 @@ export default function MembersPage() {
 
         const response = await getWorkspaceMembers(
           selectedWorkspaceId,
-          accessToken,
         )
 
         if (isActive) setMembers(response.members)
@@ -113,7 +108,7 @@ export default function MembersPage() {
     return () => {
       isActive = false
     }
-  }, [accessToken, selectedWorkspaceId])
+  }, [selectedWorkspaceId])
 
   const selectedWorkspace = workspaces.find(
     (workspace) => workspace.id === selectedWorkspaceId,
