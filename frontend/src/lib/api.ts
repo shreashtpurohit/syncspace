@@ -65,7 +65,6 @@ const parseError = async (response: Response): Promise<ApiError> => {
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
-  _legacyToken?: string,
 ): Promise<T> {
   const headers = new Headers(options.headers)
 
