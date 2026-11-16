@@ -20,6 +20,7 @@ function getCookieNames(provider: OAuthProvider) {
   return {
     state: `syncspace_${provider}_oauth_state`,
     verifier: `syncspace_${provider}_oauth_verifier`,
+    nonce: `syncspace_${provider}_oauth_nonce`,
   };
 }
 
@@ -32,16 +33,23 @@ export async function createOAuthTransaction(
   const codeChallenge =
     await oidc.calculatePKCECodeChallenge(codeVerifier);
 
+  const nonce = provider === "google" ? oidc.randomNonce() : undefined;
+
   const cookieNames = getCookieNames(provider);
   const options = getCookieOptions();
 
   response.cookie(cookieNames.state, state, options);
   response.cookie(cookieNames.verifier, codeVerifier, options);
 
+  if (nonce) {
+    response.cookie(cookieNames.nonce, nonce, options);
+  }
+
   return {
     state,
     codeVerifier,
     codeChallenge,
+    nonce,
   };
 }
 
@@ -60,4 +68,5 @@ export function clearOAuthTransaction(
 
   response.clearCookie(cookieNames.state, options);
   response.clearCookie(cookieNames.verifier, options);
+  response.clearCookie(cookieNames.nonce, options);
 }
