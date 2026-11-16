@@ -1,3 +1,4 @@
+
 const API_BASE_URL = ''
 
 export class ApiError extends Error {
@@ -10,10 +11,61 @@ export class ApiError extends Error {
   }
 }
 
+let refreshPromise: Promise<boolean> | null = null
+
+const refreshSession = (): Promise<boolean> => {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        })
+
+        return response.ok
+      } catch {
+        return false
+      } finally {
+        refreshPromise = null
+      }
+    })()
+  }
+
+  return refreshPromise
+}
+
+const shouldRefreshSession = (path: string): boolean => {
+  const excludedPaths = [
+    '/auth/login',
+    '/auth/register',
+    '/auth/refresh',
+    '/auth/logout',
+  ]
+
+  return !excludedPaths.includes(path)
+}
+
+const parseError = async (response: Response): Promise<ApiError> => {
+  const errorBody: unknown = await response.json().catch(() => null)
+
+  let message = `Request failed with status ${response.status}`
+
+  if (
+    errorBody &&
+    typeof errorBody === 'object' &&
+    'message' in errorBody &&
+    typeof errorBody.message === 'string'
+  ) {
+    message = errorBody.message
+  }
+
+  return new ApiError(response.status, message)
+}
+
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
-  token?: string,
+  _legacyToken?: string,
 ): Promise<T> {
   const headers = new Headers(options.headers)
 
@@ -21,30 +73,24 @@ export async function apiRequest<T>(
     headers.set('Content-Type', 'application/json')
   }
 
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`)
-  }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const requestOptions: RequestInit = {
     ...options,
     headers,
-  })
+    credentials: 'include',
+  }
+
+  let response = await fetch(`${API_BASE_URL}${path}`, requestOptions)
+
+  if (response.status === 401 && shouldRefreshSession(path)) {
+    const refreshed = await refreshSession()
+
+    if (refreshed) {
+      response = await fetch(`${API_BASE_URL}${path}`, requestOptions)
+    }
+  }
 
   if (!response.ok) {
-    const errorBody: unknown = await response.json().catch(() => null)
-
-    let message = `Request failed with status ${response.status}`
-
-    if (
-      errorBody &&
-      typeof errorBody === 'object' &&
-      'message' in errorBody &&
-      typeof errorBody.message === 'string'
-    ) {
-      message = errorBody.message
-    }
-
-    throw new ApiError(response.status, message)
+    throw await parseError(response)
   }
 
   if (response.status === 204) {
