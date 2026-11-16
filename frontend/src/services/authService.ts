@@ -1,3 +1,4 @@
+
 import { apiRequest } from '../lib/api'
 import type {
   AuthResponse,
@@ -24,8 +25,12 @@ export const login = (
   })
 }
 
-export const getCurrentUser = (
-  token: string,
-): Promise<CurrentUserResponse> => {
-  return apiRequest<CurrentUserResponse>('/auth/me', {}, token)
+export const getCurrentUser = (): Promise<CurrentUserResponse> => {
+  return apiRequest<CurrentUserResponse>('/auth/me')
+}
+
+export const logout = (): Promise<{ message: string }> => {
+  return apiRequest<{ message: string }>('/auth/logout', {
+    method: 'POST',
+  })
 }
