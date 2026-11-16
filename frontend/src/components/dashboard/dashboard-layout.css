@@ -296,13 +296,32 @@
 
   .dashboard-brand {
     padding: 0;
+    .sidebar-divider {
+  margin-bottom: 10px;
+}
+
+.dashboard-user {
+  padding: 6px 2px;
+}
+
+.user-dropdown {
+  top: calc(100% + 8px);
+  right: 0;
+  bottom: auto;
+  left: auto;
+  transform-origin: top right;
+}
   }
 
   .dashboard-workspace,
-  .dashboard-sidebar-bottom,
-  .navigation-heading {
-    display: none;
-  }
+.navigation-heading {
+  display: none;
+}
+
+.dashboard-sidebar-bottom {
+  display: block;
+  margin-top: 16px;
+}
 
   .dashboard-navigation {
     flex-direction: row;
