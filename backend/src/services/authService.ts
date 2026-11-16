@@ -32,7 +32,7 @@ interface LoginInput {
   password: string;
 }
 
-interface AuthResult {
+export interface AuthResult {
   user: PublicUser;
   accessToken: string;
   refreshToken: string;
@@ -54,6 +54,19 @@ const createAuthSession = async (userId: string) => {
   });
 
   return refreshToken;
+};
+
+export const createOAuthAuthResult = async (
+  user: PublicUser,
+): Promise<AuthResult> => {
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = await createAuthSession(user.id);
+
+  return {
+    user,
+    accessToken,
+    refreshToken,
+  };
 };
 
 export const registerUser = async (
@@ -112,10 +125,9 @@ export const loginUser = async (
     throw new AppError("Invalid email or password", 401);
   }
 
-  const passwordMatches = await bcrypt.compare(
-    input.password,
-    user.password_hash,
-  );
+  const passwordMatches =
+  user.password_hash !== null &&
+  (await bcrypt.compare(input.password, user.password_hash));
 
   if (!passwordMatches) {
     throw new AppError("Invalid email or password", 401);
