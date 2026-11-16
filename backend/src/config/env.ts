@@ -8,6 +8,7 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default("15m"),
   PORT: z.coerce.number().int().positive().default(5000),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  APP_ORIGIN: z.string().url().default("http://localhost:5173"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
