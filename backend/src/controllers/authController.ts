@@ -7,7 +7,14 @@ import {
 } from "../services/authService.js";
 import { findUserById } from "../repositories/userRepository.js";
 import { AppError } from "../errors/AppError.js";
-import { setAuthCookies } from "../utils/authCookies.js";
+import { setAuthCookies,
+         clearAuthCookies,
+         REFRESH_TOKEN_COOKIE,
+ } from "../utils/authCookies.js";
+import {
+  refreshAuthSession,
+  logoutUser,
+} from "../services/authService.js";
 
 const passwordSchema = z
   .string()
@@ -97,6 +104,52 @@ export const getCurrentUserController = async (
     }
 
     return res.status(200).json({ user });
+  } catch (error) {
+    next(error);
+  }
+};
+export const refreshController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE];
+
+    if (!refreshToken || typeof refreshToken !== "string") {
+      throw new AppError("Refresh token is required", 401);
+    }
+
+    const result = await refreshAuthSession(refreshToken);
+
+    setAuthCookies(res, result.accessToken, result.refreshToken);
+
+    return res.status(200).json({
+      message: "Session refreshed successfully",
+      user: result.user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logoutController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE];
+
+    await logoutUser(
+      typeof refreshToken === "string" ? refreshToken : undefined,
+    );
+
+    clearAuthCookies(res);
+
+    return res.status(200).json({
+      message: "Logged out successfully",
+    });
   } catch (error) {
     next(error);
   }
