@@ -17,7 +17,7 @@ import type { Project } from '../types/project'
 import './dashboard-pages.css'
 
 export default function DashboardPage() {
-  const { user, accessToken } = useAuth()
+  const { user } = useAuth()
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('')
@@ -40,10 +40,7 @@ export default function DashboardPage() {
 
   // Load workspaces
   useEffect(() => {
-    if (!accessToken) {
-      setIsLoadingWorkspaces(false)
-      return
-    }
+    
 
     let isActive = true
 
@@ -52,7 +49,7 @@ export default function DashboardPage() {
         setIsLoadingWorkspaces(true)
         setWorkspaceError('')
 
-        const response = await getWorkspaces(accessToken)
+        const response = await getWorkspaces()
 
         if (!isActive) return
 
@@ -78,11 +75,11 @@ export default function DashboardPage() {
     return () => {
       isActive = false
     }
-  }, [accessToken])
+  }, [])
 
   // Load projects whenever the selected workspace changes
   useEffect(() => {
-    if (!accessToken || !selectedWorkspaceId) {
+    if (!selectedWorkspaceId) {
       setProjects([])
       setIsLoadingProjects(false)
       return
@@ -96,10 +93,7 @@ export default function DashboardPage() {
         setProjectError('')
         setProjects([])
 
-        const response = await getProjects(
-          selectedWorkspaceId,
-          accessToken,
-        )
+        const response = await getProjects(selectedWorkspaceId)
 
         if (isActive) {
           setProjects(response.projects)
@@ -124,22 +118,17 @@ export default function DashboardPage() {
     return () => {
       isActive = false
     }
-  }, [accessToken, selectedWorkspaceId])
+  }, [selectedWorkspaceId])
 
   // Create workspace
   const handleCreateWorkspace = async (name: string) => {
-    if (!accessToken) {
-      setCreateWorkspaceError(
-        'Your session has expired. Please log in again.',
-      )
-      return
-    }
+    
 
     try {
       setIsCreatingWorkspace(true)
       setCreateWorkspaceError('')
 
-      const response = await createWorkspace(name, accessToken)
+      const response = await createWorkspace(name)
 
       setWorkspaces((currentWorkspaces) => [
         ...currentWorkspaces,
@@ -176,7 +165,7 @@ export default function DashboardPage() {
     name: string,
     description: string,
   ) => {
-    if (!accessToken || !selectedWorkspaceId) {
+    if (!selectedWorkspaceId) {
       setCreateProjectError(
         'Select a workspace before creating a project.',
       )
@@ -193,7 +182,6 @@ export default function DashboardPage() {
           name,
           ...(description ? { description } : {}),
         },
-        accessToken,
       )
 
       setProjects((currentProjects) => [
