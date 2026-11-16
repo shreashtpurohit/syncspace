@@ -1,6 +1,8 @@
+
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from 'react'
@@ -8,6 +10,8 @@ import {
 import {
   login as loginRequest,
   register as registerRequest,
+  getCurrentUser,
+  logout as logoutRequest,
 } from '../services/authService'
 
 import type {
@@ -18,11 +22,11 @@ import type {
 
 interface AuthContextValue {
   user: User | null
-  accessToken: string | null
   isAuthenticated: boolean
+  isInitializing: boolean
   login: (credentials: LoginCredentials) => Promise<void>
   register: (credentials: RegisterCredentials) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -33,33 +37,60 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
-  const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [isInitializing, setIsInitializing] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const restoreSession = async () => {
+      try {
+        const response = await getCurrentUser()
+
+        if (isMounted) {
+          setUser(response.user)
+        }
+      } catch {
+        if (isMounted) {
+          setUser(null)
+        }
+      } finally {
+        if (isMounted) {
+          setIsInitializing(false)
+        }
+      }
+    }
+
+    void restoreSession()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const login = async (credentials: LoginCredentials): Promise<void> => {
     const response = await loginRequest(credentials)
-
     setUser(response.user)
-    setAccessToken(response.accessToken)
   }
 
   const register = async (
     credentials: RegisterCredentials,
   ): Promise<void> => {
     const response = await registerRequest(credentials)
-
     setUser(response.user)
-    setAccessToken(response.accessToken)
   }
 
-  const logout = (): void => {
-    setUser(null)
-    setAccessToken(null)
+  const logout = async (): Promise<void> => {
+    try {
+      await logoutRequest()
+    } finally {
+      setUser(null)
+    }
   }
 
   const value: AuthContextValue = {
     user,
-    accessToken,
-    isAuthenticated: Boolean(user && accessToken),
+    isAuthenticated: Boolean(user),
+    isInitializing,
     login,
     register,
     logout,
