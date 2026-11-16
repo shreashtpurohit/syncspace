@@ -10,7 +10,7 @@ import type { Project } from '../types/project'
 import './projects-page.css'
 
 export default function ProjectsPage() {
-  const { user, accessToken } = useAuth()
+  const { user} = useAuth()
   const navigate = useNavigate()
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
@@ -25,10 +25,7 @@ export default function ProjectsPage() {
   const [projectError, setProjectError] = useState('')
 
   useEffect(() => {
-    if (!accessToken) {
-      setIsLoadingWorkspaces(false)
-      return
-    }
+    
 
     let isActive = true
 
@@ -37,7 +34,7 @@ export default function ProjectsPage() {
         setIsLoadingWorkspaces(true)
         setWorkspaceError('')
 
-        const response = await getWorkspaces(accessToken)
+        const response = await getWorkspaces()
 
         if (!isActive) return
 
@@ -70,10 +67,10 @@ export default function ProjectsPage() {
     return () => {
       isActive = false
     }
-  }, [accessToken])
+  }, [])
 
   useEffect(() => {
-    if (!accessToken || !selectedWorkspaceId) {
+    if (!selectedWorkspaceId) {
       setProjects([])
       setIsLoadingProjects(false)
       return
@@ -89,7 +86,7 @@ export default function ProjectsPage() {
 
         const response = await getProjects(
           selectedWorkspaceId,
-          accessToken,
+          
         )
 
         if (isActive) setProjects(response.projects)
@@ -111,7 +108,7 @@ export default function ProjectsPage() {
     return () => {
       isActive = false
     }
-  }, [accessToken, selectedWorkspaceId])
+  }, [selectedWorkspaceId])
 
   const selectedWorkspace = workspaces.find(
     (workspace) => workspace.id === selectedWorkspaceId,
