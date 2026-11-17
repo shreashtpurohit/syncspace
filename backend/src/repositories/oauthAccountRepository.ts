@@ -176,10 +176,94 @@ export const createOAuthUser = async (
     await client.query("COMMIT");
 
     return { user, account };
-  } catch (error) {
+    } catch (error) {
     await client.query("ROLLBACK");
+
+    const isUniqueViolation =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "23505";
+
+    if (isUniqueViolation) {
+      const existingUser = await pool.query<{ id: string }>(
+        `SELECT id
+         FROM users
+         WHERE email = $1`,
+        [input.email],
+      );
+
+      if (existingUser.rows.length > 0) {
+        throw new OAuthEmailAlreadyExistsError();
+      }
+    }
+
     throw error;
   } finally {
     client.release();
   }
+};
+
+export const linkOAuthAccount = async (
+  input: CreateOAuthAccountInput,
+): Promise<OAuthAccount> => {
+  const result = await pool.query<OAuthAccount>(
+    `INSERT INTO oauth_accounts (
+       user_id,
+       provider,
+       provider_user_id,
+       email,
+       email_verified
+     )
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING
+       id,
+       user_id,
+       provider,
+       provider_user_id,
+       email,
+       email_verified,
+       created_at,
+       updated_at`,
+    [
+      input.userId,
+      input.provider,
+      input.providerUserId,
+      input.email,
+      input.emailVerified,
+    ],
+  );
+
+  const account = result.rows[0];
+
+  if (!account) {
+    throw new Error("Failed to link OAuth account.");
+  }
+
+  return account;
+};
+
+export interface LinkedOAuthProvider {
+  provider: OAuthProvider;
+  email: string | null;
+  email_verified: boolean;
+  created_at: Date;
+}
+
+export const findLinkedOAuthProviders = async (
+  userId: string,
+): Promise<LinkedOAuthProvider[]> => {
+  const result = await pool.query<LinkedOAuthProvider>(
+    `SELECT
+       provider,
+       email,
+       email_verified,
+       created_at
+     FROM oauth_accounts
+     WHERE user_id = $1
+     ORDER BY created_at ASC`,
+    [userId],
+  );
+
+  return result.rows;
 };
