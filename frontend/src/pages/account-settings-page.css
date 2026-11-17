@@ -1,0 +1,168 @@
+
+.account-settings-page {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  color: #191919;
+}
+
+.account-settings-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 42px;
+}
+
+.account-settings-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: #77776f;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.account-settings-heading h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+}
+
+.account-settings-heading p,
+.account-settings-section-heading p {
+  margin: 9px 0 0;
+  color: #77776f;
+  font-size: 14px;
+}
+
+.account-settings-section {
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #d2d2ca;
+  border-radius: 12px;
+}
+
+.account-settings-section-heading {
+  margin-bottom: 24px;
+}
+
+.account-settings-section-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.connected-account-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #e4e4dd;
+  border-radius: 9px;
+}
+
+.connected-account-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.connected-account-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e4e4dd;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.connected-account-info h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.connected-account-info p {
+  margin: 5px 0 0;
+  color: #77776f;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.connected-account-status {
+  flex-shrink: 0;
+  padding: 7px 11px;
+  border-radius: 20px;
+  background: #eef5dc;
+  color: #536c1b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.connect-account-button {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: 1px solid #191919;
+  border-radius: 7px;
+  background: #191919;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.connect-account-button:hover {
+  background: #d7f45b;
+  border-color: #d7f45b;
+  color: #191919;
+}
+
+.connect-account-button:focus-visible {
+  outline: 2px solid #191919;
+  outline-offset: 3px;
+}
+
+.account-settings-message,
+.account-settings-error {
+  padding: 16px 0;
+  font-size: 14px;
+}
+
+.account-settings-message {
+  color: #77776f;
+}
+
+.account-settings-error {
+  color: #b42318;
+}
+
+@media (max-width: 600px) {
+  .account-settings-heading {
+    margin-bottom: 28px;
+  }
+
+  .account-settings-heading h1 {
+    font-size: 26px;
+  }
+
+  .account-settings-section {
+    padding: 18px;
+  }
+
+  .connected-account-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .connect-account-button {
+    width: 100%;
+  }
+}
