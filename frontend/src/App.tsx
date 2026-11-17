@@ -8,6 +8,7 @@ import DashBoardPage from './pages/DashBoardPage'
 import ProjectsPage from './pages/ProjectsPage'
 import ProjectDetailsPage from './pages/ProjectDetailsPage'
 import MembersPage from './pages/MembersPage'
+import AccountSettingsPage from './pages/AccountSettingsPage'
 
 function HomeRedirect() {
   const { isAuthenticated } = useAuth()
@@ -59,6 +60,8 @@ export default function App() {
         <Route path="/projects" element={<ProjectsPage />} />
 
         <Route path="/members" element={<MembersPage />} />
+
+        <Route path="/settings" element={<AccountSettingsPage />} />
 
         <Route
           path="/workspaces/:workspaceId/projects/:projectId"
