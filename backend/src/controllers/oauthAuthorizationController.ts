@@ -1,10 +1,13 @@
 
 import type { Request, Response, NextFunction } from "express";
-import { AppError } from "../errors/AppError.js";
 import { createOAuthAuthorizationUrl } from "../services/oauthAuthorizationService.js";
 import type { OAuthProvider } from "../config/oauth.js";
+import type { OAuthFlow } from "../utils/oauthcookies.js";
 
-export const startOAuthController = (provider: OAuthProvider) => {
+export const startOAuthController = (
+  provider: OAuthProvider,
+  flow: OAuthFlow = "login",
+) => {
   return async (
     _req: Request,
     res: Response,
@@ -14,15 +17,12 @@ export const startOAuthController = (provider: OAuthProvider) => {
       const authorizationUrl = await createOAuthAuthorizationUrl(
         provider,
         res,
+        flow,
       );
 
       return res.redirect(authorizationUrl.toString());
     } catch (error) {
-      if (provider === "google" || provider === "github") {
-        return next(error);
-      }
-
-      return next(new AppError("Unsupported OAuth provider.", 400));
+      return next(error);
     }
   };
 };
