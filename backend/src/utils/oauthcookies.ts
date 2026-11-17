@@ -4,6 +4,8 @@ import * as oidc from "openid-client";
 import { env } from "../config/env.js";
 import type { OAuthProvider } from "../config/oauth.js";
 
+export type OAuthFlow = "login" | "link";
+
 const TRANSACTION_MAX_AGE = 10 * 60 * 1000;
 
 function getCookieOptions() {
@@ -16,26 +18,33 @@ function getCookieOptions() {
   };
 }
 
-function getCookieNames(provider: OAuthProvider) {
+function getCookieNames(
+  provider: OAuthProvider,
+  flow: OAuthFlow = "login",
+) {
+  const flowSuffix = flow === "link" ? "_link" : "";
+
   return {
-    state: `syncspace_${provider}_oauth_state`,
-    verifier: `syncspace_${provider}_oauth_verifier`,
-    nonce: `syncspace_${provider}_oauth_nonce`,
+    state: `syncspace_${provider}${flowSuffix}_oauth_state`,
+    verifier: `syncspace_${provider}${flowSuffix}_oauth_verifier`,
+    nonce: `syncspace_${provider}${flowSuffix}_oauth_nonce`,
   };
 }
 
 export async function createOAuthTransaction(
   response: Response,
   provider: OAuthProvider,
+  flow: OAuthFlow = "login",
 ) {
   const state = oidc.randomState();
   const codeVerifier = oidc.randomPKCECodeVerifier();
+
   const codeChallenge =
     await oidc.calculatePKCECodeChallenge(codeVerifier);
 
   const nonce = provider === "google" ? oidc.randomNonce() : undefined;
 
-  const cookieNames = getCookieNames(provider);
+  const cookieNames = getCookieNames(provider, flow);
   const options = getCookieOptions();
 
   response.cookie(cookieNames.state, state, options);
@@ -56,8 +65,9 @@ export async function createOAuthTransaction(
 export function clearOAuthTransaction(
   response: Response,
   provider: OAuthProvider,
+  flow: OAuthFlow = "login",
 ) {
-  const cookieNames = getCookieNames(provider);
+  const cookieNames = getCookieNames(provider, flow);
 
   const options = {
     httpOnly: true,
