@@ -11,12 +11,17 @@ const envSchema = z.object({
   APP_ORIGIN: z.string().url().default("http://localhost:5173"),
 
   // OAuth configuration
+    // OAuth configuration
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_CALLBACK_URL: z
     .string()
     .url()
     .default("http://localhost:5000/auth/google/callback"),
+  GOOGLE_LINK_CALLBACK_URL: z
+    .string()
+    .url()
+    .default("http://localhost:5000/auth/google/link/callback"),
 
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
