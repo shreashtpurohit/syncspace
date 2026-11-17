@@ -3,7 +3,11 @@ import * as oidc from "openid-client";
 import type { Response } from "express";
 import { env } from "../config/env.js";
 import type { OAuthProvider } from "../config/oauth.js";
-import { createOAuthTransaction } from "../utils/oauthcookies.js";
+import {
+  createOAuthTransaction,
+  clearOAuthTransaction,
+  type OAuthFlow,
+} from "../utils/oauthcookies.js";
 import {
   getGoogleOAuthConfiguration,
   getGitHubOAuthConfiguration,
@@ -12,36 +16,45 @@ import {
 export async function createOAuthAuthorizationUrl(
   provider: OAuthProvider,
   response: Response,
+  flow: OAuthFlow = "login",
 ): Promise<URL> {
-  const transaction = await createOAuthTransaction(response, provider);
+  const transaction = await createOAuthTransaction(response, provider, flow);
 
-  const configuration =
-    provider === "google"
-      ? await getGoogleOAuthConfiguration()
-      : await getGitHubOAuthConfiguration();
+  try {
+    const configuration =
+      provider === "google"
+        ? await getGoogleOAuthConfiguration()
+        : await getGitHubOAuthConfiguration();
 
-  const providerConfig = {
-    google: {
-      callbackUrl: env.GOOGLE_CALLBACK_URL,
-      scope: "openid email profile",
-    },
-    github: {
-      callbackUrl: env.GITHUB_CALLBACK_URL,
-      scope: "read:user user:email",
-    },
-  }[provider];
+    const providerConfig = {
+      google: {
+        callbackUrl:
+          flow === "link"
+            ? env.GOOGLE_LINK_CALLBACK_URL
+            : env.GOOGLE_CALLBACK_URL,
+        scope: "openid email profile",
+      },
+      github: {
+        callbackUrl: env.GITHUB_CALLBACK_URL,
+        scope: "read:user user:email",
+      },
+    }[provider];
 
-  const parameters: Record<string, string> = {
-    redirect_uri: providerConfig.callbackUrl,
-    scope: providerConfig.scope,
-    state: transaction.state,
-    code_challenge: transaction.codeChallenge,
-    code_challenge_method: "S256",
-  };
+    const parameters: Record<string, string> = {
+      redirect_uri: providerConfig.callbackUrl,
+      scope: providerConfig.scope,
+      state: transaction.state,
+      code_challenge: transaction.codeChallenge,
+      code_challenge_method: "S256",
+    };
 
-  if (transaction.nonce) {
-    parameters.nonce = transaction.nonce;
+    if (transaction.nonce) {
+      parameters.nonce = transaction.nonce;
+    }
+
+    return oidc.buildAuthorizationUrl(configuration, parameters);
+  } catch (error) {
+    clearOAuthTransaction(response, provider, flow);
+    throw error;
   }
-
-  return oidc.buildAuthorizationUrl(configuration, parameters);
 }
