@@ -64,10 +64,12 @@ export default function DashboardLayout({
     workspaceName.trim().charAt(0).toUpperCase() || 'W'
 
   const currentPage =
-    location.pathname === '/projects'
-      ? 'Projects'
-      : location.pathname === '/members'
-        ? 'Members'
+  location.pathname === '/projects'
+    ? 'Projects'
+    : location.pathname === '/members'
+      ? 'Members'
+      : location.pathname === '/settings'
+        ? 'Account Settings'
         : location.pathname.startsWith('/workspaces/')
           ? 'Project Details'
           : 'Overview'
@@ -304,6 +306,19 @@ export default function DashboardLayout({
                 </div>
 
                 <div className="user-dropdown-divider" />
+
+                <button
+  type="button"
+  className="user-dropdown-settings"
+  role="menuitem"
+  onClick={() => {
+    setIsUserMenuOpen(false);
+    navigate("/settings");
+  }}
+>
+  <span aria-hidden="true">⚙</span>
+  Account settings
+</button>
 
                 <button
                   type="button"
