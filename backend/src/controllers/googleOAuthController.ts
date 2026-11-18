@@ -12,7 +12,7 @@ export const googleOAuthCallbackController = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   try {
     const state = req.cookies?.syncspace_google_oauth_state;
     const codeVerifier = req.cookies?.syncspace_google_oauth_verifier;
@@ -23,14 +23,20 @@ export const googleOAuthCallbackController = async (
       typeof codeVerifier !== "string" ||
       typeof nonce !== "string"
     ) {
-      throw new AppError("Google OAuth transaction is invalid or expired.", 400);
+      throw new AppError(
+        "Google OAuth transaction is invalid or expired.",
+        400,
+      );
     }
 
     const callbackUrl = new URL(env.GOOGLE_CALLBACK_URL);
     const queryIndex = req.originalUrl.indexOf("?");
 
     if (queryIndex === -1) {
-      throw new AppError("Google OAuth callback parameters are missing.", 400);
+      throw new AppError(
+        "Google OAuth callback parameters are missing.",
+        400,
+      );
     }
 
     callbackUrl.search = req.originalUrl.slice(queryIndex);
@@ -48,13 +54,26 @@ export const googleOAuthCallbackController = async (
     });
 
     const result = await createOAuthAuthResult(user);
+
     clearOAuthTransaction(res, "google");
     setAuthCookies(res, result.accessToken, result.refreshToken);
 
-    return res.redirect(`${env.APP_ORIGIN}/dashboard`);
+    res.redirect(`${env.APP_ORIGIN}/dashboard`);
   } catch (error) {
     clearOAuthTransaction(res, "google");
-    return next(error);
+
+    if (
+      error instanceof AppError &&
+      error.message.startsWith(
+        "An account with this email already exists.",
+      )
+    ) {
+      res.redirect(
+        `${env.APP_ORIGIN}/login?oauth_error=account_exists`,
+      );
+      return;
+    }
+
+    next(error);
   }
 };
-
