@@ -1,6 +1,11 @@
 
 import { useState, type FormEvent } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import AuthLayout from '../components/auth/AuthLayout'
 
@@ -8,6 +13,7 @@ export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,6 +23,8 @@ export default function LoginPage() {
   const from =
     (location.state as { from?: { pathname?: string } } | null)
       ?.from?.pathname ?? '/dashboard'
+
+  const oauthError = searchParams.get('oauth_error')
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -48,6 +56,16 @@ export default function LoginPage() {
         </p>
       }
     >
+      {oauthError === 'account_exists' ? (
+        <div className="auth-error" role="alert">
+          <strong>An account with this email already exists.</strong>
+          <p>
+            Sign in using your existing password. Once logged in, you can
+            connect Google from Account Settings.
+          </p>
+        </div>
+      ) : null}
+
       <form className="auth-form" onSubmit={handleSubmit}>
         <div className="auth-field">
           <label htmlFor="email">Email address</label>
@@ -75,11 +93,11 @@ export default function LoginPage() {
           />
         </div>
 
-        {error && (
+        {error ? (
           <p className="auth-error" role="alert">
             {error}
           </p>
-        )}
+        ) : null}
 
         <button
           className="auth-submit"
@@ -87,7 +105,9 @@ export default function LoginPage() {
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Signing in...' : 'Sign in'}
-          {!isSubmitting && <span aria-hidden="true">↗</span>}
+          {!isSubmitting ? (
+            <span aria-hidden="true">↗</span>
+          ) : null}
         </button>
       </form>
 
