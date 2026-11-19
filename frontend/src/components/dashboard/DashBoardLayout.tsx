@@ -1,13 +1,17 @@
-
 import { useEffect, useRef, useState } from 'react'
+
 import type { ReactNode } from 'react'
+
 import {
   NavLink,
   useLocation,
   useNavigate,
 } from 'react-router-dom'
+
 import { useAuth } from '../../context/AuthContext'
+
 import type { Workspace } from '../../types/workspace'
+
 import './dashboard-layout.css'
 
 interface DashboardLayoutProps {
@@ -63,16 +67,21 @@ export default function DashboardLayout({
   const workspaceInitial =
     workspaceName.trim().charAt(0).toUpperCase() || 'W'
 
+  // Preserve the currently selected workspace in sidebar navigation.
+  const workspaceQuery = selectedWorkspaceId
+    ? `?workspaceId=${encodeURIComponent(selectedWorkspaceId)}`
+    : ''
+
   const currentPage =
-  location.pathname === '/projects'
-    ? 'Projects'
-    : location.pathname === '/members'
-      ? 'Members'
-      : location.pathname === '/settings'
-        ? 'Account Settings'
-        : location.pathname.startsWith('/workspaces/')
-          ? 'Project Details'
-          : 'Overview'
+    location.pathname === '/projects'
+      ? 'Projects'
+      : location.pathname === '/members'
+        ? 'Members'
+        : location.pathname === '/settings'
+          ? 'Account Settings'
+          : location.pathname.startsWith('/workspaces/')
+            ? 'Project Details'
+            : 'Overview'
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -194,7 +203,8 @@ export default function DashboardLayout({
                       }
                     >
                       <span className="workspace-dropdown-avatar">
-                        {workspace.name.trim().charAt(0).toUpperCase() || 'W'}
+                        {workspace.name.trim().charAt(0).toUpperCase() ||
+                          'W'}
                       </span>
 
                       <span className="workspace-dropdown-item-details">
@@ -223,11 +233,14 @@ export default function DashboardLayout({
           )}
         </div>
 
-        <nav className="dashboard-navigation" aria-label="Main navigation">
+        <nav
+          className="dashboard-navigation"
+          aria-label="Main navigation"
+        >
           <span className="navigation-heading">WORKSPACE</span>
 
           <NavLink
-            to="/dashboard"
+            to={`/dashboard${workspaceQuery}`}
             end
             className={({ isActive }) =>
               `navigation-item ${isActive ? 'active' : ''}`
@@ -241,7 +254,7 @@ export default function DashboardLayout({
             item.path ? (
               <NavLink
                 key={item.label}
-                to={item.path}
+                to={`${item.path}${workspaceQuery}`}
                 className={({ isActive }) =>
                   `navigation-item ${isActive ? 'active' : ''}`
                 }
@@ -308,17 +321,17 @@ export default function DashboardLayout({
                 <div className="user-dropdown-divider" />
 
                 <button
-  type="button"
-  className="user-dropdown-settings"
-  role="menuitem"
-  onClick={() => {
-    setIsUserMenuOpen(false);
-    navigate("/settings");
-  }}
->
-  <span aria-hidden="true">⚙</span>
-  Account settings
-</button>
+                  type="button"
+                  className="user-dropdown-settings"
+                  role="menuitem"
+                  onClick={() => {
+                    setIsUserMenuOpen(false)
+                    navigate('/settings')
+                  }}
+                >
+                  <span aria-hidden="true">⚙</span>
+                  Account settings
+                </button>
 
                 <button
                   type="button"
