@@ -1,26 +1,33 @@
-
 import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+
 import { useAuth } from '../context/AuthContext'
+
 import DashboardLayout from '../components/dashboard/DashBoardLayout'
 import CreateWorkspaceModal from '../components/dashboard/CreateWorkSpaceModal'
 import CreateProjectModal from '../components/dashboard/CreateProjectModal'
+
 import {
   getWorkspaces,
   createWorkspace,
 } from '../services/workspaceService'
+
 import {
   getProjects,
   createProject,
 } from '../services/projectService'
+
 import type { Workspace } from '../types/workspace'
 import type { Project } from '../types/project'
+
 import './dashboard-pages.css'
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('')
   const [projects, setProjects] = useState<Project[]>([])
 
   const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(true)
@@ -38,10 +45,17 @@ export default function DashboardPage() {
   const [isCreatingProject, setIsCreatingProject] = useState(false)
   const [createProjectError, setCreateProjectError] = useState('')
 
-  // Load workspaces
-  useEffect(() => {
-    
+  // The URL is the source of truth for the selected workspace.
+  const requestedWorkspaceId = searchParams.get('workspaceId') ?? ''
 
+  const selectedWorkspaceId = workspaces.some(
+    (workspace) => workspace.id === requestedWorkspaceId,
+  )
+    ? requestedWorkspaceId
+    : (workspaces[0]?.id ?? '')
+
+  // Load workspaces.
+  useEffect(() => {
     let isActive = true
 
     const loadWorkspaces = async () => {
@@ -54,7 +68,6 @@ export default function DashboardPage() {
         if (!isActive) return
 
         setWorkspaces(response.workspaces)
-        setSelectedWorkspaceId(response.workspaces[0]?.id ?? '')
       } catch (error) {
         if (!isActive) return
 
@@ -77,10 +90,48 @@ export default function DashboardPage() {
     }
   }, [])
 
-  // Load projects whenever the selected workspace changes
+  // Keep the URL valid after workspaces have loaded.
+  // A missing or inaccessible workspace falls back to the first workspace.
+  useEffect(() => {
+    if (isLoadingWorkspaces) return
+
+    if (selectedWorkspaceId === requestedWorkspaceId) return
+
+    const nextSearchParams = new URLSearchParams(searchParams)
+
+    if (selectedWorkspaceId) {
+      nextSearchParams.set('workspaceId', selectedWorkspaceId)
+    } else {
+      nextSearchParams.delete('workspaceId')
+    }
+
+    setSearchParams(nextSearchParams, { replace: true })
+  }, [
+    isLoadingWorkspaces,
+    requestedWorkspaceId,
+    searchParams,
+    selectedWorkspaceId,
+    setSearchParams,
+  ])
+
+  // Update the URL whenever the user switches workspaces.
+  const handleWorkspaceChange = (workspaceId: string) => {
+    const nextSearchParams = new URLSearchParams(searchParams)
+
+    if (workspaceId) {
+      nextSearchParams.set('workspaceId', workspaceId)
+    } else {
+      nextSearchParams.delete('workspaceId')
+    }
+
+    setSearchParams(nextSearchParams)
+  }
+
+  // Load projects whenever the selected workspace changes.
   useEffect(() => {
     if (!selectedWorkspaceId) {
       setProjects([])
+      setProjectError('')
       setIsLoadingProjects(false)
       return
     }
@@ -120,10 +171,8 @@ export default function DashboardPage() {
     }
   }, [selectedWorkspaceId])
 
-  // Create workspace
+  // Create workspace.
   const handleCreateWorkspace = async (name: string) => {
-    
-
     try {
       setIsCreatingWorkspace(true)
       setCreateWorkspaceError('')
@@ -135,7 +184,10 @@ export default function DashboardPage() {
         response.workspace,
       ])
 
-      setSelectedWorkspaceId(response.workspace.id)
+      const nextSearchParams = new URLSearchParams(searchParams)
+      nextSearchParams.set('workspaceId', response.workspace.id)
+      setSearchParams(nextSearchParams)
+
       setIsCreateModalOpen(false)
     } catch (error) {
       setCreateWorkspaceError(
@@ -160,7 +212,7 @@ export default function DashboardPage() {
     setCreateWorkspaceError('')
   }
 
-  // Create project
+  // Create project.
   const handleCreateProject = async (
     name: string,
     description: string,
@@ -176,13 +228,10 @@ export default function DashboardPage() {
       setIsCreatingProject(true)
       setCreateProjectError('')
 
-      const response = await createProject(
-        selectedWorkspaceId,
-        {
-          name,
-          ...(description ? { description } : {}),
-        },
-      )
+      const response = await createProject(selectedWorkspaceId, {
+        name,
+        ...(description ? { description } : {}),
+      })
 
       setProjects((currentProjects) => [
         ...currentProjects,
@@ -236,7 +285,7 @@ export default function DashboardPage() {
       workspaceRole={selectedWorkspace?.role ?? 'Member'}
       workspaces={workspaces}
       selectedWorkspaceId={selectedWorkspaceId}
-      onWorkspaceChange={setSelectedWorkspaceId}
+      onWorkspaceChange={handleWorkspaceChange}
     >
       <div className="dashboard-overview">
         <section className="dashboard-welcome">
@@ -303,7 +352,9 @@ export default function DashboardPage() {
             workspaces.length === 0 && (
               <div className="dashboard-empty-state">
                 <span className="dashboard-empty-mark">+</span>
+
                 <h3>Your workspace starts here.</h3>
+
                 <p>
                   You don't belong to a workspace yet. Create one to
                   start organizing your projects.
@@ -322,26 +373,53 @@ export default function DashboardPage() {
           {selectedWorkspace && (
             <>
               <div className="dashboard-stat-grid">
-                <article className="dashboard-stat-card dashboard-stat-featured">
+                <button
+                  type="button"
+                  className="dashboard-stat-card dashboard-stat-featured dashboard-stat-interactive"
+                  onClick={() =>
+                    navigate(
+                      `/projects?workspaceId=${encodeURIComponent(selectedWorkspaceId)}`,
+                    )
+                  }
+                  aria-label={`View all ${projects.length} projects in ${selectedWorkspace.name}`}
+                  disabled={isLoadingProjects}
+                >
                   <span className="dashboard-stat-label">
                     TOTAL PROJECTS
                   </span>
+
                   <strong>
                     {isLoadingProjects ? '—' : projects.length}
                   </strong>
+
                   <span className="dashboard-stat-caption">
                     In {selectedWorkspace.name}
                   </span>
-                  <span className="dashboard-stat-decoration">01</span>
-                </article>
+
+                  <span
+                    className="dashboard-stat-decoration"
+                    aria-hidden="true"
+                  >
+                    01
+                  </span>
+
+                  <span
+                    className="dashboard-stat-link"
+                    aria-hidden="true"
+                  >
+                    View projects ↗
+                  </span>
+                </button>
 
                 <article className="dashboard-stat-card">
                   <span className="dashboard-stat-label">
                     WORKSPACE ROLE
                   </span>
+
                   <strong className="dashboard-role-value">
                     {selectedWorkspace.role}
                   </strong>
+
                   <span className="dashboard-stat-caption">
                     Your current access level
                   </span>
@@ -351,9 +429,11 @@ export default function DashboardPage() {
                   <span className="dashboard-stat-label">
                     WORKSPACE MEMBERSHIP
                   </span>
+
                   <strong className="dashboard-role-value">
                     Active
                   </strong>
+
                   <span className="dashboard-stat-caption">
                     You're part of this workspace
                   </span>
@@ -407,7 +487,9 @@ export default function DashboardPage() {
                   projects.length === 0 && (
                     <div className="dashboard-empty-state">
                       <span className="dashboard-empty-mark">↗</span>
+
                       <h3>Nothing on the board yet.</h3>
+
                       <p>
                         Create your first project to give your team a
                         place to plan and collaborate.
@@ -443,6 +525,7 @@ export default function DashboardPage() {
                             <span className="dashboard-project-index">
                               {String(index + 1).padStart(2, '0')}
                             </span>
+
                             <span className="dashboard-project-arrow">
                               ↗
                             </span>
