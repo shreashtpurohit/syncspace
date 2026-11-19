@@ -1,17 +1,22 @@
 
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+
 import { useAuth } from '../context/AuthContext'
 import DashboardLayout from '../components/dashboard/DashBoardLayout'
+
 import { getWorkspaces } from '../services/workspaceService'
 import { getProjects } from '../services/projectService'
+
 import type { Workspace } from '../types/workspace'
 import type { Project } from '../types/project'
+
 import './projects-page.css'
 
 export default function ProjectsPage() {
-  const { user} = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('')
@@ -24,9 +29,8 @@ export default function ProjectsPage() {
   const [workspaceError, setWorkspaceError] = useState('')
   const [projectError, setProjectError] = useState('')
 
+  // Load available workspaces
   useEffect(() => {
-    
-
     let isActive = true
 
     const loadWorkspaces = async () => {
@@ -39,16 +43,6 @@ export default function ProjectsPage() {
         if (!isActive) return
 
         setWorkspaces(response.workspaces)
-        setSelectedWorkspaceId((current) => {
-          if (
-            current &&
-            response.workspaces.some((workspace) => workspace.id === current)
-          ) {
-            return current
-          }
-
-          return response.workspaces[0]?.id ?? ''
-        })
       } catch (error) {
         if (!isActive) return
 
@@ -58,7 +52,9 @@ export default function ProjectsPage() {
             : 'Unable to load your workspaces.',
         )
       } finally {
-        if (isActive) setIsLoadingWorkspaces(false)
+        if (isActive) {
+          setIsLoadingWorkspaces(false)
+        }
       }
     }
 
@@ -69,10 +65,54 @@ export default function ProjectsPage() {
     }
   }, [])
 
+  // Keep the selected workspace synchronized with the URL
+  useEffect(() => {
+    if (isLoadingWorkspaces) return
+
+    if (workspaces.length === 0) {
+      setSelectedWorkspaceId('')
+      return
+    }
+
+    const requestedWorkspaceId = searchParams.get('workspaceId')
+
+    const requestedWorkspaceExists = workspaces.some(
+      (workspace) => workspace.id === requestedWorkspaceId,
+    )
+
+    if (requestedWorkspaceExists && requestedWorkspaceId) {
+      setSelectedWorkspaceId(requestedWorkspaceId)
+      return
+    }
+
+    const defaultWorkspaceId = workspaces[0].id
+
+    setSelectedWorkspaceId(defaultWorkspaceId)
+
+    setSearchParams(
+      { workspaceId: defaultWorkspaceId },
+      { replace: true },
+    )
+  }, [
+    isLoadingWorkspaces,
+    workspaces,
+    searchParams,
+    setSearchParams,
+  ])
+
+  // Handle workspace selection from the sidebar
+  const handleWorkspaceChange = (workspaceId: string) => {
+    setSelectedWorkspaceId(workspaceId)
+
+    setSearchParams({ workspaceId }, { replace: true })
+  }
+
+  // Load projects whenever the selected workspace changes
   useEffect(() => {
     if (!selectedWorkspaceId) {
       setProjects([])
       setIsLoadingProjects(false)
+      setProjectError('')
       return
     }
 
@@ -84,12 +124,11 @@ export default function ProjectsPage() {
         setProjectError('')
         setProjects([])
 
-        const response = await getProjects(
-          selectedWorkspaceId,
-          
-        )
+        const response = await getProjects(selectedWorkspaceId)
 
-        if (isActive) setProjects(response.projects)
+        if (isActive) {
+          setProjects(response.projects)
+        }
       } catch (error) {
         if (!isActive) return
 
@@ -99,7 +138,9 @@ export default function ProjectsPage() {
             : 'Unable to load your projects.',
         )
       } finally {
-        if (isActive) setIsLoadingProjects(false)
+        if (isActive) {
+          setIsLoadingProjects(false)
+        }
       }
     }
 
@@ -114,6 +155,7 @@ export default function ProjectsPage() {
     (workspace) => workspace.id === selectedWorkspaceId,
   )
 
+  // Search projects
   const filteredProjects = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
 
@@ -141,7 +183,7 @@ export default function ProjectsPage() {
       workspaceRole={selectedWorkspace?.role ?? 'Member'}
       workspaces={workspaces}
       selectedWorkspaceId={selectedWorkspaceId}
-      onWorkspaceChange={setSelectedWorkspaceId}
+      onWorkspaceChange={handleWorkspaceChange}
     >
       <div className="projects-page">
         <section className="projects-page-heading">
@@ -149,14 +191,20 @@ export default function ProjectsPage() {
             <span className="dashboard-section-label">
               WORKSPACE / PROJECTS
             </span>
-            <h1>Your projects<span>.</span></h1>
+
+            <h1>
+              Your projects<span>.</span>
+            </h1>
+
             <p>
               All your workspace projects, together in one place.
             </p>
           </div>
 
           <div className="projects-page-total">
-            <strong>{projects.length.toString().padStart(2, '0')}</strong>
+            <strong>
+              {projects.length.toString().padStart(2, '0')}
+            </strong>
             <span>TOTAL PROJECTS</span>
           </div>
         </section>
@@ -167,11 +215,13 @@ export default function ProjectsPage() {
               <span className="dashboard-section-label">
                 PROJECT DIRECTORY
               </span>
+
               <h2>All projects</h2>
             </div>
 
             <label className="projects-search">
               <span aria-hidden="true">⌕</span>
+
               <input
                 type="search"
                 placeholder="Search projects..."
@@ -189,7 +239,10 @@ export default function ProjectsPage() {
           )}
 
           {workspaceError && (
-            <div className="dashboard-status dashboard-status-error" role="alert">
+            <div
+              className="dashboard-status dashboard-status-error"
+              role="alert"
+            >
               {workspaceError}
             </div>
           )}
@@ -213,7 +266,10 @@ export default function ProjectsPage() {
               )}
 
               {projectError && (
-                <div className="dashboard-status dashboard-status-error" role="alert">
+                <div
+                  className="dashboard-status dashboard-status-error"
+                  role="alert"
+                >
                   {projectError}
                 </div>
               )}
@@ -237,7 +293,9 @@ export default function ProjectsPage() {
                   <div className="dashboard-empty-state">
                     <span className="dashboard-empty-mark">⌕</span>
                     <h3>No matching projects.</h3>
-                    <p>Try a different project name or description.</p>
+                    <p>
+                      Try a different project name or description.
+                    </p>
                   </div>
                 )}
 
@@ -248,23 +306,32 @@ export default function ProjectsPage() {
                     {filteredProjects.map((project, index) => (
                       <article
                         className="projects-directory-card"
-               key={project.id}
-               role="link"
-               tabIndex={0}
-               onClick={() =>
-                 navigate(`/workspaces/${selectedWorkspaceId}/projects/${project.id}`)
-               }
-               onKeyDown={(event) => {
-                 if (event.key === 'Enter' || event.key === ' ') {
-                   event.preventDefault()
-                   navigate(`/workspaces/${selectedWorkspaceId}/projects/${project.id}`)
-                 }
-               }}  
+                        key={project.id}
+                        role="link"
+                        tabIndex={0}
+                        onClick={() =>
+                          navigate(
+                            `/workspaces/${selectedWorkspaceId}/projects/${project.id}`,
+                          )
+                        }
+                        onKeyDown={(event) => {
+                          if (
+                            event.key === 'Enter' ||
+                            event.key === ' '
+                          ) {
+                            event.preventDefault()
+
+                            navigate(
+                              `/workspaces/${selectedWorkspaceId}/projects/${project.id}`,
+                            )
+                          }
+                        }}
                       >
                         <div className="projects-directory-card-top">
                           <span>
                             PROJECT / {String(index + 1).padStart(2, '0')}
                           </span>
+
                           <span aria-hidden="true">↗</span>
                         </div>
 
@@ -276,7 +343,10 @@ export default function ProjectsPage() {
                         </p>
 
                         <div className="projects-directory-card-footer">
-                          <span>CREATED {formattedDate(project.created_at)}</span>
+                          <span>
+                            CREATED {formattedDate(project.created_at)}
+                          </span>
+
                           <span className="projects-directory-status">
                             ACTIVE
                           </span>
