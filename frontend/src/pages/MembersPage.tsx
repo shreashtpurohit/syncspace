@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import DashboardLayout from '../components/dashboard/DashBoardLayout'
 import {
@@ -11,10 +12,10 @@ import type { WorkspaceMember } from '../types/workspaceMember'
 import './members-page.css'
 
 export default function MembersPage() {
-  const { user} = useAuth()
+  const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState('')
   const [members, setMembers] = useState<WorkspaceMember[]>([])
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -24,8 +25,19 @@ export default function MembersPage() {
   const [workspaceError, setWorkspaceError] = useState('')
   const [memberError, setMemberError] = useState('')
 
+  const requestedWorkspaceId = searchParams.get('workspaceId')
+
+  // Use the requested workspace if accessible; otherwise fall back
+  // to the first workspace the user has access to.
+  const selectedWorkspace =
+    workspaces.find(
+      (workspace) => workspace.id === requestedWorkspaceId,
+    ) ?? workspaces[0]
+
+  const selectedWorkspaceId = selectedWorkspace?.id ?? ''
+
+  // Load accessible workspaces.
   useEffect(() => {
-    
     let isActive = true
 
     const loadWorkspaces = async () => {
@@ -38,18 +50,6 @@ export default function MembersPage() {
         if (!isActive) return
 
         setWorkspaces(response.workspaces)
-        setSelectedWorkspaceId((current) => {
-          if (
-            current &&
-            response.workspaces.some(
-              (workspace) => workspace.id === current,
-            )
-          ) {
-            return current
-          }
-
-          return response.workspaces[0]?.id ?? ''
-        })
       } catch (error) {
         if (!isActive) return
 
@@ -70,9 +70,47 @@ export default function MembersPage() {
     }
   }, [])
 
+  // Keep the URL synchronized with the selected accessible workspace.
+  useEffect(() => {
+    if (isLoadingWorkspaces) return
+
+    if (!selectedWorkspaceId) {
+      if (requestedWorkspaceId) {
+        setSearchParams(
+          (current) => {
+            const next = new URLSearchParams(current)
+            next.delete('workspaceId')
+            return next
+          },
+          { replace: true },
+        )
+      }
+
+      return
+    }
+
+    if (requestedWorkspaceId !== selectedWorkspaceId) {
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current)
+          next.set('workspaceId', selectedWorkspaceId)
+          return next
+        },
+        { replace: true },
+      )
+    }
+  }, [
+    isLoadingWorkspaces,
+    requestedWorkspaceId,
+    selectedWorkspaceId,
+    setSearchParams,
+  ])
+
+  // Load members whenever the URL-selected workspace changes.
   useEffect(() => {
     if (!selectedWorkspaceId) {
       setMembers([])
+      setMemberError('')
       setIsLoadingMembers(false)
       return
     }
@@ -89,7 +127,9 @@ export default function MembersPage() {
           selectedWorkspaceId,
         )
 
-        if (isActive) setMembers(response.members)
+        if (isActive) {
+          setMembers(response.members)
+        }
       } catch (error) {
         if (!isActive) return
 
@@ -110,9 +150,13 @@ export default function MembersPage() {
     }
   }, [selectedWorkspaceId])
 
-  const selectedWorkspace = workspaces.find(
-    (workspace) => workspace.id === selectedWorkspaceId,
-  )
+  const handleWorkspaceChange = (workspaceId: string) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current)
+      next.set('workspaceId', workspaceId)
+      return next
+    })
+  }
 
   const filteredMembers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
@@ -142,7 +186,7 @@ export default function MembersPage() {
       workspaceRole={selectedWorkspace?.role ?? 'Member'}
       workspaces={workspaces}
       selectedWorkspaceId={selectedWorkspaceId}
-      onWorkspaceChange={setSelectedWorkspaceId}
+      onWorkspaceChange={handleWorkspaceChange}
     >
       <div className="members-page">
         <section className="members-page-heading">
@@ -150,14 +194,18 @@ export default function MembersPage() {
             <span className="dashboard-section-label">
               WORKSPACE / MEMBERS
             </span>
-            <h1>Your people<span>.</span></h1>
+            <h1>
+              Your people<span>.</span>
+            </h1>
             <p>
               Everyone collaborating in your workspace, together in one place.
             </p>
           </div>
 
           <div className="members-page-total">
-            <strong>{members.length.toString().padStart(2, '0')}</strong>
+            <strong>
+              {members.length.toString().padStart(2, '0')}
+            </strong>
             <span>WORKSPACE MEMBERS</span>
           </div>
         </section>
