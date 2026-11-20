@@ -124,12 +124,11 @@ export default function ProjectDetailsPage() {
       setIsDeleting(true)
       setDeleteError('')
 
-      await deleteProject(
-        workspaceId,
-        projectId,
-      )
+      await deleteProject(workspaceId, projectId)
 
-      navigate('/projects', { replace: true })
+      navigate(`/projects?workspaceId=${workspaceId}`, {
+        replace: true,
+      })
     } catch (error) {
       setDeleteError(
         error instanceof Error
@@ -156,10 +155,15 @@ export default function ProjectDetailsPage() {
       workspaceRole={selectedWorkspace?.role ?? 'Member'}
       workspaces={workspaces}
       selectedWorkspaceId={workspaceId ?? ''}
-      onWorkspaceChange={() => navigate('/projects')}
+      onWorkspaceChange={(nextWorkspaceId) =>
+        navigate(`/projects?workspaceId=${nextWorkspaceId}`)
+      }
     >
       <main className="project-details-page">
-        <Link to="/projects" className="project-details-back">
+        <Link
+          to={`/projects?workspaceId=${workspaceId}`}
+          className="project-details-back"
+        >
           ← Back to projects
         </Link>
 
@@ -186,7 +190,10 @@ export default function ProjectDetailsPage() {
                   WORKSPACE / PROJECT DETAILS
                 </span>
 
-                <h1>{project.name}<span>.</span></h1>
+                <h1>
+                  {project.name}
+                  <span>.</span>
+                </h1>
 
                 <p>
                   {project.description ||
@@ -250,7 +257,9 @@ export default function ProjectDetailsPage() {
               <span className="dashboard-section-label">
                 PROJECT WORKSPACE
               </span>
+
               <h2>Something big starts here.</h2>
+
               <p>
                 Tasks, team collaboration and project activity
                 will live here as we build the next features.
