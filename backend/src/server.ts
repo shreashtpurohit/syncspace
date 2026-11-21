@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { env } from "./config/env.js";
 import { verifyRequestOrigin } from "./middleware/csrf.js";
+import taskRoutes from "./routes/taskRoutes.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(cookieParser());
 app.use(verifyRequestOrigin);
 app.use(authRoutes);
 app.use(workspaceRoutes);
+app.use(taskRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.status(200).json({ message: "SyncSpace API is running" });
