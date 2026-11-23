@@ -6,11 +6,15 @@ import {
   getTaskAssignees as getTaskAssigneesRepository,
   assignTaskMember as assignTaskMemberRepository,
   removeTaskAssignee as removeTaskAssigneeRepository,
+  updateTaskStatus as updateTaskStatusRepository,
+  getTaskStatusHistory as getTaskStatusHistoryRepository,
 } from "../repositories/taskRepository.js";
 
 import type {
   Task,
   TaskAssignee,
+  TaskStatus,
+  TaskStatusHistory,
   CreateTaskData,
 } from "../repositories/taskRepository.js";
 
@@ -20,8 +24,18 @@ import {
 
 import { AppError } from "../errors/AppError.js";
 
-const TASK_STATUSES = ["todo", "in_progress", "done"] as const;
-const TASK_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
+const TASK_PRIORITIES = [
+  "low",
+  "medium",
+  "high",
+  "urgent",
+] as const;
+
+const VALID_TASK_STATUSES = [
+  "todo",
+  "in_progress",
+  "done",
+] as const;
 
 interface CreateTaskInput extends CreateTaskData {}
 
@@ -70,15 +84,15 @@ export const createTask = async ({
   }
 
   return createTaskRepository({
-  projectId,
-  createdBy,
-  title: trimmedTitle,
-  ...(description !== undefined
-    ? { description: description.trim() }
-    : {}),
-  priority,
-  ...(dueDate !== undefined ? { dueDate } : {}),
-});
+    projectId,
+    createdBy,
+    title: trimmedTitle,
+    ...(description !== undefined
+      ? { description: description.trim() }
+      : {}),
+    priority,
+    ...(dueDate !== undefined ? { dueDate } : {}),
+  });
 };
 
 export const getTasksByProject = async (
@@ -191,4 +205,42 @@ export const removeTaskAssignee = async (
       404,
     );
   }
+};
+
+export const updateTaskStatus = async (
+  taskId: string,
+  projectId: string,
+  changedBy: string,
+  status: TaskStatus,
+): Promise<Task> => {
+  if (!VALID_TASK_STATUSES.includes(status)) {
+    throw new AppError("Invalid task status", 400);
+  }
+
+  try {
+    return await updateTaskStatusRepository(
+      taskId,
+      projectId,
+      changedBy,
+      status,
+    );
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message === "Task not found"
+    ) {
+      throw new AppError("Task not found", 404);
+    }
+
+    throw error;
+  }
+};
+
+export const getTaskStatusHistory = async (
+  taskId: string,
+  projectId: string,
+): Promise<TaskStatusHistory[]> => {
+  await getTaskById(taskId, projectId);
+
+  return getTaskStatusHistoryRepository(taskId);
 };
