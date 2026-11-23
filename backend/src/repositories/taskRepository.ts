@@ -222,3 +222,163 @@ export const removeTaskAssignee = async (
 
   return result.rowCount !== null && result.rowCount > 0;
 };
+
+export interface TaskStatusHistory {
+  id: string;
+  task_id: string;
+  changed_by: string;
+  previous_status: TaskStatus | null;
+  new_status: TaskStatus;
+  changed_at: Date;
+}
+
+export const updateTaskStatus = async (
+  taskId: string,
+  projectId: string,
+  changedBy: string,
+  newStatus: TaskStatus,
+): Promise<Task> => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const taskResult = await client.query<Task>(
+      `
+        SELECT
+          id,
+          project_id,
+          created_by,
+          title,
+          description,
+          status,
+          priority,
+          due_date,
+          created_at,
+          updated_at
+        FROM tasks
+        WHERE id = $1
+          AND project_id = $2
+        FOR UPDATE
+      `,
+      [taskId, projectId],
+    );
+
+    const existingTask = taskResult.rows[0];
+
+    if (!existingTask) {
+      throw new Error("Task not found");
+    }
+
+    const updateResult = await client.query<Task>(
+      `
+        UPDATE tasks
+        SET
+          status = $1,
+          updated_at = NOW()
+        WHERE id = $2
+          AND project_id = $3
+        RETURNING
+          id,
+          project_id,
+          created_by,
+          title,
+          description,
+          status,
+          priority,
+          due_date,
+          created_at,
+          updated_at
+      `,
+      [newStatus, taskId, projectId],
+    );
+
+    const updatedTask = updateResult.rows[0];
+
+    if (!updatedTask) {
+      throw new Error("Failed to update task status");
+    }
+
+    if (existingTask.status !== newStatus) {
+      await client.query(
+        `
+          INSERT INTO task_status_history (
+            task_id,
+            changed_by,
+            previous_status,
+            new_status
+          )
+          VALUES ($1, $2, $3, $4)
+        `,
+        [
+          taskId,
+          changedBy,
+          existingTask.status,
+          newStatus,
+        ],
+      );
+    }
+
+    await client.query("COMMIT");
+
+    return updatedTask;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+export const getTaskStatusHistory = async (
+  taskId: string,
+): Promise<TaskStatusHistory[]> => {
+  const result = await pool.query<TaskStatusHistory>(
+    `
+      SELECT
+        id,
+        task_id,
+        changed_by,
+        previous_status,
+        new_status,
+        changed_at
+      FROM task_status_history
+      WHERE task_id = $1
+      ORDER BY changed_at DESC
+    `,
+    [taskId],
+  );
+
+  return result.rows;
+};
+
+export const updateTaskPriority = async (
+  taskId: string,
+  projectId: string,
+  priority: TaskPriority,
+): Promise<Task | null> => {
+  const result = await pool.query<Task>(
+    `
+      UPDATE tasks
+      SET
+        priority = $1,
+        updated_at = NOW()
+      WHERE id = $2
+        AND project_id = $3
+      RETURNING
+        id,
+        project_id,
+        created_by,
+        title,
+        description,
+        status,
+        priority,
+        due_date,
+        created_at,
+        updated_at
+    `,
+    [priority, taskId, projectId],
+  );
+
+  return result.rows[0] ?? null;
+};
