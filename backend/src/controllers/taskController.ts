@@ -8,9 +8,14 @@ import {
   getTaskAssignees,
   assignTaskMember,
   removeTaskAssignee,
+  updateTaskStatus,
+updateTaskPriority,
+getTaskStatusHistory,
 } from "../services/taskService.js";
 
 import type { TaskPriority } from "../repositories/taskRepository.js";
+import { AppError } from "../errors/AppError.js";
+import type { TaskStatus } from "../repositories/taskRepository.js";
 
 const TASK_PRIORITIES: TaskPriority[] = [
   "low",
@@ -238,6 +243,120 @@ export const removeTaskAssigneeController = async (
 
     return res.status(200).json({
       message: "Task assignee removed successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateTaskStatusController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const params = getProjectParams(req);
+
+if (!params) {
+  throw new AppError("Invalid workspace or project ID", 400);
+}
+
+const { projectId } = params;
+
+    if (typeof req.params.taskId !== "string") {
+      throw new AppError("Invalid task ID", 400);
+    }
+
+    if (!req.user) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const { status } = req.body;
+
+    if (typeof status !== "string") {
+      throw new AppError("Task status is required", 400);
+    }
+
+    const task = await updateTaskStatus(
+      req.params.taskId,
+      projectId,
+      req.user.id,
+      status as TaskStatus,
+    );
+
+    res.status(200).json({
+      message: "Task status updated successfully",
+      task,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateTaskPriorityController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const params = getProjectParams(req);
+
+if (!params) {
+  throw new AppError("Invalid workspace or project ID", 400);
+}
+
+const { projectId } = params;
+
+    if (typeof req.params.taskId !== "string") {
+      throw new AppError("Invalid task ID", 400);
+    }
+
+    const { priority } = req.body;
+
+    if (typeof priority !== "string") {
+      throw new AppError("Task priority is required", 400);
+    }
+
+    const task = await updateTaskPriority(
+      req.params.taskId,
+      projectId,
+      priority,
+    );
+
+    res.status(200).json({
+      message: "Task priority updated successfully",
+      task,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTaskStatusHistoryController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const params = getProjectParams(req);
+
+if (!params) {
+  throw new AppError("Invalid workspace or project ID", 400);
+}
+
+const { projectId } = params;
+
+    if (typeof req.params.taskId !== "string") {
+      throw new AppError("Invalid task ID", 400);
+    }
+
+    const history = await getTaskStatusHistory(
+      req.params.taskId,
+      projectId,
+    );
+
+    res.status(200).json({
+      history,
     });
   } catch (error) {
     next(error);
