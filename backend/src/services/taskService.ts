@@ -8,6 +8,7 @@ import {
   removeTaskAssignee as removeTaskAssigneeRepository,
   updateTaskStatus as updateTaskStatusRepository,
   getTaskStatusHistory as getTaskStatusHistoryRepository,
+  updateTaskPriority as updateTaskPriorityRepository,
 } from "../repositories/taskRepository.js";
 
 import type {
@@ -16,6 +17,7 @@ import type {
   TaskStatus,
   TaskStatusHistory,
   CreateTaskData,
+  TaskPriority,
 } from "../repositories/taskRepository.js";
 
 import {
@@ -243,4 +245,30 @@ export const getTaskStatusHistory = async (
   await getTaskById(taskId, projectId);
 
   return getTaskStatusHistoryRepository(taskId);
+};
+
+export const updateTaskPriority = async (
+  taskId: string,
+  projectId: string,
+  priority: string,
+): Promise<Task> => {
+  if (
+    !TASK_PRIORITIES.includes(
+      priority as (typeof TASK_PRIORITIES)[number],
+    )
+  ) {
+    throw new AppError("Invalid task priority", 400);
+  }
+
+  const updatedTask = await updateTaskPriorityRepository(
+    taskId,
+    projectId,
+    priority as TaskPriority,
+  );
+
+  if (!updatedTask) {
+    throw new AppError("Task not found", 404);
+  }
+
+  return updatedTask;
 };
