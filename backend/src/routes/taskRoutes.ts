@@ -12,6 +12,9 @@ import {
   getTaskAssigneesController,
   assignTaskMemberController,
   removeTaskAssigneeController,
+  updateTaskStatusController,
+  updateTaskPriorityController,
+  getTaskStatusHistoryController,
 } from "../controllers/taskController.js";
 
 const router = Router();
@@ -74,6 +77,29 @@ router.delete(
   workspaceAccess,
   requireProjectRole("editor"),
   removeTaskAssigneeController,
+);
+router.patch(
+  "/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/status",
+  authenticate,
+  workspaceAccess,
+  requireProjectRole("editor"),
+  updateTaskStatusController,
+);
+
+router.patch(
+  "/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/priority",
+  authenticate,
+  workspaceAccess,
+  requireProjectRole("editor"),
+  updateTaskPriorityController,
+);
+
+router.get(
+  "/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/history",
+  authenticate,
+  workspaceAccess,
+  requireProjectRole("viewer", "editor"),
+  getTaskStatusHistoryController,
 );
 
 export default router;
